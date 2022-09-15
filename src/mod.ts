@@ -64,15 +64,15 @@ class OpenExtracts implements IPostDBLoadMod
                 if (this.config.ignore_entry_point && locations[location].base.exits[extract].EntryPoints !== newEntryPoint)
                 {
                     locations[location].base.exits[extract].EntryPoints = newEntryPoint;
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has been updated to allow all entry points.`);
                 }
                 
                 // Updates the percentage that random extracts are available.
-                if (this.config.random_exit_update && this.config.random_extract_chance >= 0 && this.config.random_extract_chance <= 100 && locations[location].base.exits[extract].Chance !== this.config.random_extract_chance)
+                if (this.config.random_extract_update && this.config.random_extract_chance >= 0 && this.config.random_extract_chance <= 100 && locations[location].base.exits[extract].Chance !== this.config.random_extract_chance)
                 {
                     locations[location].base.exits[extract].Chance = this.config.random_extract_chance;
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has a ${this.config.random_extract_chance}% chance to be enabled.`);
                 }
                     
@@ -90,7 +90,7 @@ class OpenExtracts implements IPostDBLoadMod
                     locations[location].base.exits[extract].Id = this.config.cooperation_item;
                     locations[location].base.exits[extract].Count = this.config.cooperation_number;
 
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has been converted to a payment extract.`);
                 }
 
@@ -101,25 +101,25 @@ class OpenExtracts implements IPostDBLoadMod
                     locations[location].base.exits[extract].RequiredSlot = "FirstPrimaryWeapon";
                     locations[location].base.exits[extract].RequirementTip = "";
 
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's backpack requirement removed.`);
                 }
 
-                // Updates Reserve Cliff extract to be useable without a paracord, red rebel, and with an armored rig.
+                // Updates cliff extracts to be useable without a paracord, red rebel, and with an armored rig.
                 if (this.config.ignore_cliff_requirements && locations[location].base.exits[extract].Name === "Alpinist")
                 {
                     locations[location].base.exits[extract].Id = "";
                     locations[location].base.exits[extract].PassageRequirement = "None";
 
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's paracord, red rebel, and armored rig requirements removed.`);
                 }
 
-                // Sets a maxamum hold time for extracts.
+                // Sets a maximum hold time for extracts.
                 if (locations[location].base.exits[extract].ExfiltrationTime > this.config.max_extraction_time)
                 {
                     locations[location].base.exits[extract].ExfiltrationTime = this.config.max_extraction_time;
-                    if (this.config.debug)
+                    if (this.debug)
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's extraction time updated to ${this.config.max_extraction_time} seconds.`);
                 }
 
@@ -152,11 +152,10 @@ class OpenExtracts implements IPostDBLoadMod
             case "Woods":
                 return "House,Old Station";
             default:
-                this.logger.debug(`Unknown location: ${location}`);
+                this.logger.warning(`Unknown location: ${location}`);
                 return "";
         }
     }
 }
 
 module.exports = {mod: new OpenExtracts()};
-

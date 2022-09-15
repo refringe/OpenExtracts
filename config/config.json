@@ -25,6 +25,6 @@
     "_comment": "Updates Reserve Cliff extract to be useable without a paracord, red rebel, and with an armored rig. [true/false]",
     "ignore_cliff_requirements": true,
 
-    "_comment": "Sets a maxamum hold time for extracts. [number:seconds:1-60]",
-    "max_extraction_time": 30
+    "_comment": "Sets a maximum hold time for extracts. [number:seconds:1-60]",
+    "max_extraction_time": 15
 }
