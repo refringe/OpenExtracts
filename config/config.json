@@ -19,7 +19,7 @@
     "cooperation_item": "5449016a4bdc2d6f028b456f",
     "cooperation_number": 5000,
 
-    "_comment": "Updates no-backpack extracts to be useable with backpacks. (Labs:Vents, Reserve:Sewer) [true/false]",
+    "_comment": "Updates no-backpack extracts to be useable with backpacks. (Labs:Vents, Reserve:Sewer, Interchange:Hole in the Fence) [true/false]",
     "ignore_backpack_requirements": true,
 
     "_comment": "Updates Reserve Cliff extract to be useable without a paracord, red rebel, and with an armored rig. [true/false]",

@@ -95,7 +95,7 @@ class OpenExtracts implements IPostDBLoadMod
                 }
 
                 // Updates no-backpack extracts to be useable with backpacks.
-                if (this.config.ignore_backpack_requirements && locations[location].base.exits[extract].RequirementTip === "EXFIL_tip_backpack" && locations[location].base.exits[extract].RequiredSlot === "Backpack")
+                if (this.config.ignore_backpack_requirements && (locations[location].base.exits[extract].RequirementTip === "EXFIL_tip_backpack" || locations[location].base.exits[extract].RequirementTip === "EXFIL_INTERCHANGE_HOLE_TIP") && locations[location].base.exits[extract].RequiredSlot === "Backpack")
                 {
                     locations[location].base.exits[extract].PassageRequirement = "None";
                     locations[location].base.exits[extract].RequiredSlot = "FirstPrimaryWeapon";
