@@ -1,17 +1,20 @@
+import { IPostDBLoadModAsync } from "@spt-aki/models/external/IPostDBLoadModAsync";
+import { LogBackgroundColor } from "@spt-aki/models/spt/logging/LogBackgroundColor";
+import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
+import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { DependencyContainer } from "tsyringe";
-import type { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import type { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import type { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 
-class OpenExtracts implements IPostDBLoadMod
+class OpenExtracts implements IPostDBLoadModAsync
 {
-    private config = require("../config/config.json");
+    private config;
     private container: DependencyContainer;
     private logger;
     private debug = false;
 
-    public postDBLoad(container: DependencyContainer):void
+    public async postDBLoadAsync(container: DependencyContainer): Promise<void>
     {
+        this.config = await import("../config/config.json");
         this.container = container;
 
         // Get the logger from the server container.
@@ -21,7 +24,7 @@ class OpenExtracts implements IPostDBLoadMod
         const enabled:boolean = this.config.mod_enabled;
         if (!enabled)
         {
-            this.logger.info("OpenExtracts is disabled in the config file. No changes to raid extracts will be made.");
+            this.logger.logWithColor("OpenExtracts is disabled in the config file.", LogTextColor.RED, LogBackgroundColor.DEFAULT);
             return;
         }
 
@@ -35,7 +38,7 @@ class OpenExtracts implements IPostDBLoadMod
         this.updateExtracts(locations);
 
         // Done.
-        this.logger.info("OpenExtracts: Raid extracts have been updated.");
+        this.logger.logWithColor("OpenExtracts: Raid extracts have been updated.", LogTextColor.CYAN, LogBackgroundColor.DEFAULT);
     }
 
     private updateExtracts(locations:any):void
@@ -50,6 +53,7 @@ class OpenExtracts implements IPostDBLoadMod
             "lighthouse",
             "rezervbase",
             "shoreline",
+            "tarkovstreets",
             "woods"
         ];
 
@@ -76,7 +80,7 @@ class OpenExtracts implements IPostDBLoadMod
                         this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has a ${this.config.random_extract_chance}% chance to be enabled.`);
                 }
                     
-                // If this is a train extract, we've done enough. Move on to the next extract.
+                // If this is a train extract... Move on to the next extract.
                 if (locations[location].base.exits[extract].PassageRequirement === "Train")
                 {
                     continue;
@@ -149,6 +153,8 @@ class OpenExtracts implements IPostDBLoadMod
                 return "Common";
             case "Shoreline":
                 return "Village,Riverside";
+            case "TarkovStreets":
+                return "E1_2,E6_1,E2_3,E3_4,E4_5,E5_6,E6_1"
             case "Woods":
                 return "House,Old Station";
             default:
