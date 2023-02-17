@@ -27,11 +27,12 @@ console.log("Previous build files deleted.");
 // expanded upon by the mod author to allow for node modules that are used within the mod; example commented out below.
 const ignoreList = [
     "node_modules/",
-    // "node_modules/!(weighted|glob)", // Instead of excluding the entire node_modules directory, allow two node modules.
     "src/**/*.js",
     "types/",
     ".git/",
     ".gitea/",
+	".github/",
+	".nvmrc",
     ".eslintignore",
     ".eslintrc.json",
     ".gitignore",
@@ -39,7 +40,8 @@ const ignoreList = [
     "packageBuild.ts",
     "mod.code-workspace",
     "package-lock.json",
-    "tsconfig.json"
+    "tsconfig.json",
+    "OpenExtracts.png"
 ];
 const exclude = glob.sync(`{${ignoreList.join(",")}}`, { realpath: true, dot: true });
 
