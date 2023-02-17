@@ -1,6 +1,6 @@
 {
     "name": "OpenExtracts",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "main": "src/mod.js",
     "license": "MIT",
     "author": "Refringe",

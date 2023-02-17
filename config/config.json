@@ -6,25 +6,55 @@
     "debug": false,
 
     "_comment": "Make extracts available no matter what side of the map you spawned. [true/false]",
-    "ignore_entry_point": true,
+    "ignore_entry_point": false,
 
     "_comment": "Updates the percentage that random extracts are available. [number:0-100]",
-    "_comment": "For example: Smuggler's Boat or Pier Boat. The Default is typically 50.",
-    "random_extract_update": true,
-    "random_extract_chance": 100,
+    "random_extract_update": false,
+    "random_extract_chances": {
+        "customs": {
+            "Smuggler's Boat": 50,
+            "ZB-1012": 50,
+            "Old Gas Station": 50,
+            "Dorms V-Ex": 50
+        },
+        "interchange": {
+            "PP Exfil": 50
+        },
+        "laboratory": {
+            "lab_Parking_Gate": 60,
+            "lab_Hangar_Gate": 60
+        },
+        "lighthouse": {
+            " V-Ex_light": 50
+        },
+        "shoreline": {
+            "Rock Passage": 0,
+            "Pier Boat": 50,
+            "CCP Temporary": 50
+        },
+        "streets": {
+            "E7_car": 50,
+            "E8_yard": 40
+        },
+        "woods": {
+            "ZB-016": 66,
+            "RUAF Gate": 66,
+            "ZB-014": 66
+        }
+    },
 
     "_comment": "Updates CO-OP extracts to be useable via payment (like cars). [true/false]",
     "_comment": "By default, the payment is 5000 rubles.",
-    "convert_cooperation": true,
+    "convert_cooperation": false,
     "cooperation_item": "5449016a4bdc2d6f028b456f",
     "cooperation_number": 5000,
 
     "_comment": "Updates no-backpack extracts to be useable with backpacks. (Labs:Vents, Reserve:Sewer, Interchange:Hole in the Fence) [true/false]",
-    "ignore_backpack_requirements": true,
+    "ignore_backpack_requirements": false,
 
     "_comment": "Updates Reserve Cliff extract to be useable without a paracord, red rebel, and with an armored rig. [true/false]",
-    "ignore_cliff_requirements": true,
+    "ignore_cliff_requirements": false,
 
     "_comment": "Sets a maximum hold time for extracts. [number:seconds:1-60]",
-    "max_extraction_time": 15
+    "max_extraction_time": 60
 }

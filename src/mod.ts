@@ -43,7 +43,7 @@ class OpenExtracts implements IPostDBLoadModAsync
 
     private updateExtracts(locations:any):void
     {
-        // Initialize an array of the location names
+        // Initialize an array of all of the location names
         const locationNames = [
             "bigmap",
             "factory4_day",
@@ -56,28 +56,40 @@ class OpenExtracts implements IPostDBLoadModAsync
             "tarkovstreets",
             "woods"
         ];
-
+        
         // Loop through each location
         for (const location of locationNames)
         {
             // Loop through each extract
             for (const extract in locations[location].base.exits)
             {
+                const extractName = locations[location].base.exits[extract].Name;
+
                 // Make extracts available no matter what side of the map you spawned.
                 const newEntryPoint = this.getEntryPoints(locations[location].base.Id);
                 if (this.config.ignore_entry_point && locations[location].base.exits[extract].EntryPoints !== newEntryPoint)
                 {
                     locations[location].base.exits[extract].EntryPoints = newEntryPoint;
                     if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has been updated to allow all entry points.`);
+                        this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has been updated to allow all entry points.`);
                 }
                 
                 // Updates the percentage that random extracts are available.
-                if (this.config.random_extract_update && this.config.random_extract_chance >= 0 && this.config.random_extract_chance <= 100 && locations[location].base.exits[extract].Chance !== this.config.random_extract_chance)
-                {
-                    locations[location].base.exits[extract].Chance = this.config.random_extract_chance;
-                    if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has a ${this.config.random_extract_chance}% chance to be enabled.`);
+                if (this.config.random_extract_chances[this.locationNameLookup(location)] && this.config.random_extract_chances[this.locationNameLookup(location)][extractName]) {
+                    const configChance = this.config.random_extract_chances[this.locationNameLookup(location)][extractName];
+                    if (
+                        this.config.random_extract_update &&
+                        configChance !== undefined &&
+                        configChance >= 0 &&
+                        configChance >= 100 &&
+                        configChance !== locations[location].base.exits[extract].Chance
+                    )
+                    {
+                        const originalChance = locations[location].base.exits[extract].Chance
+                        locations[location].base.exits[extract].Chance = configChance;
+                        if (this.debug)
+                            this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has had it's chance to be enabled changed from ${originalChance}% to ${configChance}%.`);
+                    }
                 }
                     
                 // If this is a train extract... Move on to the next extract.
@@ -95,7 +107,7 @@ class OpenExtracts implements IPostDBLoadModAsync
                     locations[location].base.exits[extract].Count = this.config.cooperation_number;
 
                     if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has been converted to a payment extract.`);
+                        this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has been converted to a payment extract.`);
                 }
 
                 // Updates no-backpack extracts to be useable with backpacks.
@@ -106,17 +118,17 @@ class OpenExtracts implements IPostDBLoadModAsync
                     locations[location].base.exits[extract].RequirementTip = "";
 
                     if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's backpack requirement removed.`);
+                        this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has had it's backpack requirement removed.`);
                 }
 
                 // Updates cliff extracts to be useable without a paracord, red rebel, and with an armored rig.
-                if (this.config.ignore_cliff_requirements && locations[location].base.exits[extract].Name === "Alpinist")
+                if (this.config.ignore_cliff_requirements && extractName === "Alpinist")
                 {
                     locations[location].base.exits[extract].Id = "";
                     locations[location].base.exits[extract].PassageRequirement = "None";
 
                     if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's paracord, red rebel, and armored rig requirements removed.`);
+                        this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has had it's paracord, red rebel, and armored rig requirements removed.`);
                 }
 
                 // Sets a maximum hold time for extracts.
@@ -124,7 +136,7 @@ class OpenExtracts implements IPostDBLoadModAsync
                 {
                     locations[location].base.exits[extract].ExfiltrationTime = this.config.max_extraction_time;
                     if (this.debug)
-                        this.logger.debug(`Extract "${locations[location].base.exits[extract].Name}" on "${locations[location].base.Id}" has had it's extraction time updated to ${this.config.max_extraction_time} seconds.`);
+                        this.logger.debug(`Extract "${extractName}" on "${locations[location].base.Id}" has had it's extraction time updated to ${this.config.max_extraction_time} seconds.`);
                 }
 
                 // There's no CO-OP in SPT, so adjust some other extract settings accordingly.
@@ -134,6 +146,13 @@ class OpenExtracts implements IPostDBLoadModAsync
         }
     }
 
+    /**
+     * Returns all of the entry points for a location.
+     * 
+     * @param location The (internal) location name.
+     * 
+     * @returns Comma seperated entry points.
+     */
     private getEntryPoints(location:string):string
     {
         switch (location) {
@@ -160,6 +179,36 @@ class OpenExtracts implements IPostDBLoadModAsync
             default:
                 this.logger.warning(`Unknown location: ${location}`);
                 return "";
+        }
+    }
+
+    /**
+     * We named the locations in the config file nicer than the database names. This function fetches the nice config names
+     * using the internal database names.
+     * 
+     * @param location The internal location name.
+     * 
+     * @returns The nice name used in the configuration file.
+     */
+    private locationNameLookup(location:string):string
+    {
+        location = location.toLowerCase();
+
+        switch (location)
+        {
+            case "bigmap":
+                return "customs";
+            case "factory4_day":
+                return "factory_day";
+            case "factory4_night":
+                return "factory_night";
+            case "rezervbase":
+            case "reservebase":
+                return "reserve";
+            case "tarkovstreets":
+                return "streets";
+            default:
+                return location;
         }
     }
 }
