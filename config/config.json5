@@ -1,0 +1,75 @@
+{
+    // General settings for the mod
+    general: {
+        // Enables the use of the mod
+        enabled: true,
+
+        // Enables verbose logging
+        // Currently logs each change to each extract in detail.
+        debug: false,
+    },
+
+    extracts: {
+        // Make extracts available no matter what side of the map spawned
+        ignoreEntryPoint: false,
+
+        // Updates cliff extracts to be usable without a paracord, red rebel, and with an armored rig
+        ignoreCliffRequirements: false,
+
+        // Updates no-backpack extracts to be usable with backpacks
+        ignoreBackpackRequirements: false,
+
+        // Maximum number of seconds to wait to extract in extraction area
+        maxExtractionTime: 60,
+
+        // Update percentages for random extract availability.
+        // Only change the numbers... Do not change the keys/names.
+        random: {
+            enabled: false,
+            chances: {
+                customs: {
+                    "Smuggler's Boat": 50,
+                    'ZB-1012': 50,
+                    'Old Gas Station': 50,
+                    'Dorms V-Ex': 50,
+                },
+                interchange: {
+                    'PP Exfil': 50,
+                },
+                laboratory: {
+                    lab_Parking_Gate: 60,
+                    lab_Hangar_Gate: 60,
+                },
+                lighthouse: {
+                    ' V-Ex_light': 50,
+                },
+                shoreline: {
+                    'Rock Passage': 0,
+                    'Pier Boat': 50,
+                    'CCP Temporary': 50,
+                },
+                streets: {
+                    E7_car: 50,
+                    E8_yard: 40,
+                },
+                woods: {
+                    'ZB-016': 66,
+                    'RUAF Gate': 66,
+                    'ZB-014': 66,
+                },
+            },
+        },
+
+        // CO-OP extracts settings
+        cooperation: {
+            // Enable CO-OP extracts via payment
+            convertToPayment: false,
+
+            // Item needed for payment. Default is "5449016a4bdc2d6f028b456f" (Ruble).
+            item: '5449016a4bdc2d6f028b456f',
+
+            // Number of items required
+            number: 5000,
+        },
+    },
+}
