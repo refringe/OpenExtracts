@@ -6,16 +6,8 @@ import { getHumanLocationName } from './../utils/locations';
 /**
  * Adjusts the cliff requirements for a given extract.
  */
-export function adjustCliffRequirements(
-    location: ILocationData,
-    extract: Exit,
-    debug: boolean,
-    logger: ILogger
-): void {
-    if (
-        extract.Name.toLowerCase().includes('alpinist') &&
-        extract.PassageRequirement === 'Reference'
-    ) {
+export function adjustCliffRequirements(location: ILocationData, extract: Exit, debug: boolean, logger: ILogger): void {
+    if (extract.Name.toLowerCase().includes('alpinist') && extract.PassageRequirement === 'Reference') {
         extract.Id = '';
         extract.PassageRequirement = 'None';
 

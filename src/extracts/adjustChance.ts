@@ -13,11 +13,7 @@ export function adjustChance(
     debug: boolean,
     logger: ILogger
 ): void {
-    if (
-        configChance >= 0 &&
-        configChance <= 100 &&
-        configChance !== extract.Chance
-    ) {
+    if (configChance >= 0 && configChance <= 100 && configChance !== extract.Chance) {
         const originalChance = extract.Chance;
         extract.Chance = configChance;
         if (debug) {

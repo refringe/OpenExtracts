@@ -30,4 +30,6 @@ export interface Cooperation {
     convertToPayment: boolean;
     item: string;
     number: number;
+    increaseFenceReputation: boolean;
+    generateFenceGifts: boolean;
 }

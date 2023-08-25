@@ -10,8 +10,7 @@ import { DependencyContainer } from 'tsyringe';
  * @returns The locations from the database.
  */
 export function getLocations(container: DependencyContainer): ILocations {
-    return container.resolve<DatabaseServer>('DatabaseServer').getTables()
-        .locations;
+    return container.resolve<DatabaseServer>('DatabaseServer').getTables().locations;
 }
 
 /**
@@ -24,9 +23,7 @@ export function getAllEntryPoints(location: ILocationData): string {
     const entryPointsSet = new Set<string>();
     for (const extract in location.base.exits) {
         const entryPoints = location.base.exits[extract].EntryPoints.split(',');
-        entryPoints.forEach((entryPoint: string) =>
-            entryPointsSet.add(entryPoint)
-        );
+        entryPoints.forEach((entryPoint: string) => entryPointsSet.add(entryPoint));
     }
     return Array.from(entryPointsSet).join(',');
 }

@@ -6,7 +6,7 @@
 
         // Enables verbose logging
         // Currently logs each change to each extract in detail.
-        debug: false,
+        debug: true,
     },
 
     extracts: {
@@ -70,6 +70,12 @@
 
             // Number of items required
             number: 5000,
+
+            // Increase your Fence reputation when the CO-OP extract is used.
+            increaseFenceReputation: true,
+
+            // Generate Fence gift items when the CO-OP extract is used.
+            generateFenceGifts: true,
         },
     },
 }

@@ -1,15 +1,20 @@
-import {
-    Configuration,
-    Cooperation,
-    Extracts,
-    General,
-    Random,
-} from '../types';
+import { Configuration, Cooperation, Extracts, General, Random } from '../types';
+
+/**
+ * Validates the given configuration object and throws an error if it is invalid.
+ */
+export function validateConfig(config: Configuration): void {
+    // Validate the configuration and throw an error if invalid.
+    const validationError = runValidate(config);
+    if (validationError) {
+        throw new Error(validationError);
+    }
+}
 
 /**
  * Validates the given configuration object and returns an error message if it is invalid.
  */
-export function validateConfig(config: Configuration): string | null {
+function runValidate(config: Configuration): string | null {
     const generalValidation = isValidGeneral(config.general);
     if (generalValidation !== null) {
         return generalValidation;
@@ -77,11 +82,7 @@ function isValidRandom(random: Random): string | null {
     }
     for (const [key, value] of Object.entries(random.chances)) {
         for (const [subkey, subvalue] of Object.entries(value)) {
-            if (
-                typeof subvalue !== 'number' ||
-                subvalue < 0 ||
-                subvalue > 100
-            ) {
+            if (typeof subvalue !== 'number' || subvalue < 0 || subvalue > 100) {
                 return `The extraction point "${subkey}" in the "${key}" map has an invalid chance value. It should be a number between 0 and 100, representing the percentage chance it has to be available.`;
             }
         }
@@ -101,6 +102,12 @@ function isValidCooperation(cooperation: Cooperation): string | null {
     }
     if (typeof cooperation.number !== 'number') {
         return 'The cooperation setting "number" should be a number.';
+    }
+    if (typeof cooperation.increaseFenceReputation !== 'boolean') {
+        return 'The cooperation setting "convert_to_payment" should be a boolean.';
+    }
+    if (typeof cooperation.generateFenceGifts !== 'boolean') {
+        return 'The cooperation setting "convert_to_payment" should be a boolean.';
     }
     return null;
 }
