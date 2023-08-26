@@ -48,23 +48,15 @@ async function main() {
     const distDir = await cleanAndCreateDistDirectory(currentDir);
     logger.log('success', `Distribution directory cleaned.`);
 
-    const projectDir = await createTemporaryDirectoryWithProjectName(
-        projectName
-    );
+    const projectDir = await createTemporaryDirectoryWithProjectName(projectName);
     logger.log('success', `Created temporary working directory: ${projectDir}`);
 
     logger.log('info', 'Beginning copy operation using .buildignore file...');
     await copyFiles(currentDir, projectDir, buildIgnorePatterns);
-    logger.log(
-        'success',
-        'Files have been successfully copied to temporary directory.'
-    );
+    logger.log('success', 'Files have been successfully copied to temporary directory.');
 
     logger.log('info', 'Beginning folder compression...');
-    const zipFilePath = path.join(
-        path.dirname(projectDir),
-        `${projectName}.zip`
-    );
+    const zipFilePath = path.join(path.dirname(projectDir), `${projectName}.zip`);
     await createZipFile(projectDir, zipFilePath, 'user/mods/' + projectName);
     logger.log('success', `Created package: ${zipFilePath}`);
 
@@ -73,27 +65,15 @@ async function main() {
     logger.log('success', `Moved package: ${zipFileInProjectDir}`);
 
     await fs.promises.rename(projectDir, path.join(distDir));
-    logger.log(
-        'success',
-        'Relocated temporary directory into project distribution directory.'
-    );
+    logger.log('success', 'Relocated temporary directory into project distribution directory.');
 
     await fs.promises.rm(projectDir, { force: true, recursive: true });
     logger.log('success', 'Cleaned temporary directory.');
 
     logger.log('success', '------------------------------------');
     logger.log('success', 'Build script completed successfully!');
-    logger.log(
-        'success',
-        "Your mod package has been created in the 'dist' directory:"
-    );
-    logger.log(
-        'success',
-        `/${path.relative(
-            process.cwd(),
-            path.join(distDir, `${projectName}.zip`)
-        )}`
-    );
+    logger.log('success', "Your mod package has been created in the 'dist' directory:");
+    logger.log('success', `/${path.relative(process.cwd(), path.join(distDir, `${projectName}.zip`))}`);
     logger.log('success', '------------------------------------');
 }
 
@@ -104,26 +84,17 @@ function getCurrentDirectory() {
 async function loadBuildIgnoreFile(currentDir) {
     const buildIgnorePath = path.join(currentDir, '.buildignore');
     try {
-        const fileContent = await fs.promises.readFile(
-            buildIgnorePath,
-            'utf-8'
-        );
+        const fileContent = await fs.promises.readFile(buildIgnorePath, 'utf-8');
         return fileContent.split('\n').filter(pattern => pattern.trim() !== '');
     } catch (err) {
-        logger.log(
-            'warn',
-            'Failed to read .buildignore file. No files or directories will be ignored.'
-        );
+        logger.log('warn', 'Failed to read .buildignore file. No files or directories will be ignored.');
         return [];
     }
 }
 
 async function loadPackageJson(currentDir) {
     const packageJsonPath = path.join(currentDir, 'package.json');
-    const packageJsonContent = await fs.promises.readFile(
-        packageJsonPath,
-        'utf-8'
-    );
+    const packageJsonContent = await fs.promises.readFile(packageJsonPath, 'utf-8');
     return JSON.parse(packageJsonContent);
 }
 
@@ -143,9 +114,7 @@ async function cleanAndCreateDistDirectory(projectDir) {
 }
 
 async function createTemporaryDirectoryWithProjectName(projectName) {
-    const tempDir = await fs.promises.mkdtemp(
-        path.join(os.tmpdir(), 'spt-mod-build-')
-    );
+    const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'spt-mod-build-'));
     const projectDir = path.join(tempDir, projectName);
     await fs.promises.mkdir(projectDir);
     return projectDir;
@@ -163,10 +132,7 @@ async function copyFiles(srcDir, destDir, buildIgnorePatterns) {
             const relativePath = path.relative(process.cwd(), srcPath);
 
             if (isIgnored(relativePath, buildIgnorePatterns)) {
-                logger.log(
-                    'info',
-                    `Ignored: /${path.relative(process.cwd(), srcPath)}`
-                );
+                logger.log('info', `Ignored: /${path.relative(process.cwd(), srcPath)}`);
                 continue;
             }
 
@@ -176,14 +142,8 @@ async function copyFiles(srcDir, destDir, buildIgnorePatterns) {
                 });
                 const containsNonIgnoredFiles = subentries.some(subentry => {
                     const subentryPath = path.join(srcPath, subentry.name);
-                    const relativeSubentryPath = path.relative(
-                        process.cwd(),
-                        subentryPath
-                    );
-                    return !isIgnored(
-                        relativeSubentryPath,
-                        buildIgnorePatterns
-                    );
+                    const relativeSubentryPath = path.relative(process.cwd(), subentryPath);
+                    return !isIgnored(relativeSubentryPath, buildIgnorePatterns);
                 });
 
                 if (containsNonIgnoredFiles) {
@@ -192,10 +152,7 @@ async function copyFiles(srcDir, destDir, buildIgnorePatterns) {
                 }
             } else {
                 await fs.promises.copyFile(srcPath, destPath);
-                logger.log(
-                    'info',
-                    ` Copied: /${path.relative(process.cwd(), srcPath)}`
-                );
+                logger.log('info', ` Copied: /${path.relative(process.cwd(), srcPath)}`);
             }
         }
     } catch (err) {
@@ -233,19 +190,13 @@ async function createZipFile(directoryToZip, zipFilePath, containerDirName) {
         });
 
         output.on('close', function () {
-            logger.log(
-                'info',
-                'Archiver has finalized. The output and the file descriptor have closed.'
-            );
+            logger.log('info', 'Archiver has finalized. The output and the file descriptor have closed.');
             resolve();
         });
 
         archive.on('warning', function (err) {
             if (err.code === 'ENOENT') {
-                logger.log(
-                    'warn',
-                    `Archiver issued a warning: ${err.code} - ${err.message}`
-                );
+                logger.log('warn', `Archiver issued a warning: ${err.code} - ${err.message}`);
             } else {
                 reject(err);
             }
