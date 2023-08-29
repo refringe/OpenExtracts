@@ -1,6 +1,8 @@
 import type { ILogger } from '@spt-aki/models/spt/utils/ILogger';
 import type { DependencyContainer } from 'tsyringe';
 
+// TODO: This can be moved into the main function now.
+
 /**
  * Gets the logger from the container.
  */

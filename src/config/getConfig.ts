@@ -4,6 +4,8 @@ import { loadConfig, validateConfig } from '.';
 import { Configuration } from '../types';
 import { getLogger } from '../utils/logger';
 
+// TODO: Update this to a class.
+
 export async function getConfig(container: DependencyContainer): Promise<Configuration | null> {
     const logger = getLogger(container);
 

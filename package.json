@@ -1,7 +1,7 @@
 {
     "name": "open-extracts",
     "version": "1.2.0",
-    "main": "src/openExtracts.js",
+    "main": "src/OpenExtracts.js",
     "license": "MIT",
     "author": "Refringe",
     "akiVersion": "~3.6",

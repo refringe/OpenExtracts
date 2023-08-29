@@ -6,7 +6,7 @@
 
         // Enables verbose logging
         // Currently logs each change to each extract in detail.
-        debug: true,
+        debug: false,
     },
 
     extracts: {
@@ -23,7 +23,7 @@
         maxExtractionTime: 60,
 
         // Update percentages for random extract availability.
-        // Only change the numbers... Do not change the keys/names.
+        // Only change the numbers... Do not change the keys/names!
         random: {
             enabled: false,
             chances: {
@@ -72,10 +72,10 @@
             number: 5000,
 
             // Increase your Fence reputation when the CO-OP extract is used.
-            increaseFenceReputation: true,
+            modifyFenceReputation: true,
 
-            // Generate Fence gift items when the CO-OP extract is used.
-            generateFenceGifts: true,
+            // Send Fence gift items when the CO-OP extract is used.
+            sendFenceGifts: true,
         },
     },
 }

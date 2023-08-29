@@ -103,10 +103,10 @@ function isValidCooperation(cooperation: Cooperation): string | null {
     if (typeof cooperation.number !== 'number') {
         return 'The cooperation setting "number" should be a number.';
     }
-    if (typeof cooperation.increaseFenceReputation !== 'boolean') {
+    if (typeof cooperation.modifyFenceReputation !== 'boolean') {
         return 'The cooperation setting "convert_to_payment" should be a boolean.';
     }
-    if (typeof cooperation.generateFenceGifts !== 'boolean') {
+    if (typeof cooperation.sendFenceGifts !== 'boolean') {
         return 'The cooperation setting "convert_to_payment" should be a boolean.';
     }
     return null;

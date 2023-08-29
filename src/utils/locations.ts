@@ -1,7 +1,9 @@
-import type { ILocations } from '@spt-aki/models/spt/server/ILocations';
-import type { ILocationData } from '@spt-aki/models/spt/server/ILocations';
-import type { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
+import { ILocationBase } from '@spt-aki/models/eft/common/ILocationBase';
+import { ILocations } from '@spt-aki/models/spt/server/ILocations';
+import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
 import { DependencyContainer } from 'tsyringe';
+
+// TODO: All of these can be moved into the model classes.
 
 /**
  * Fetches the locations from the database.
@@ -19,10 +21,10 @@ export function getLocations(container: DependencyContainer): ILocations {
  * @param location The location data object.
  * @returns A comma-separated string of all entry points.
  */
-export function getAllEntryPoints(location: ILocationData): string {
+export function getAllEntryPoints(location: ILocationBase): string {
     const entryPointsSet = new Set<string>();
-    for (const extract in location.base.exits) {
-        const entryPoints = location.base.exits[extract].EntryPoints.split(',');
+    for (const extract in location.exits) {
+        const entryPoints = location.exits[extract].EntryPoints.split(',');
         entryPoints.forEach((entryPoint: string) => entryPointsSet.add(entryPoint));
     }
     return Array.from(entryPointsSet).join(',');
