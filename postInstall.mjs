@@ -9,22 +9,20 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const sptProjectFile = path.join(currentDirectory, '../../../src/Program.ts');
 const isInsideSptProject = fs.existsSync(sptProjectFile);
 
 if (isInsideSptProject) {
-    exec('rm -rf node_modules/tsyringe', err => {
-        if (err) {
-            console.error('postInstall: Failed to remove local tsyringe package:', err);
-            process.exit(1);
-        } else {
-            console.log('postInstall: Removed local tsyringe package. SPT project tsyringe package will be used.');
-            process.exit(0);
-        }
-    });
+    try {
+        fs.rmSync('node_modules/tsyringe', { recursive: true, force: true });
+        console.log('postInstall: Removed local tsyringe package. SPT project tsyringe package will be used.');
+        process.exit(0);
+    } catch (err) {
+        console.error('postInstall: Failed to remove local tsyringe package:', err);
+        process.exit(1);
+    }
 } else {
     console.log('postInstall: Running outside of SPT project. Keeping local tsyringe package.');
     process.exit(0);
