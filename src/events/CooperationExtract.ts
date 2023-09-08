@@ -7,10 +7,10 @@ import { MessageType } from '@spt-aki/models/enums/MessageType';
 import { Traders } from '@spt-aki/models/enums/Traders';
 import { ILocaleBase } from '@spt-aki/models/spt/server/ILocaleBase';
 import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
-import { LocalisationService } from '@spt-aki/services/LocalisationService';
+import { LocaleService } from '@spt-aki/services/LocaleService';
 import { MailSendService } from '@spt-aki/services/MailSendService';
 import { TimeUtil } from '@spt-aki/utils/TimeUtil';
-import { promises as fs } from 'fs';
+import * as fs from 'fs';
 import path from 'path';
 import { inject, injectable } from 'tsyringe';
 import { OpenExtracts } from '../OpenExtracts';
@@ -22,14 +22,18 @@ import { ExtractHistory, FenceMessages } from '../types';
  */
 @injectable()
 export class CooperationExtract {
-    private extractHistory: ExtractHistory = {};
-    private static extractHistoryLocation = '../data/extractHistory.json';
-    private static fenceMessageLocation = '../data/fenceMessages.json';
     private pmcData: IPmcData;
+    private extractHistory: ExtractHistory = {};
+
+    private static readonly EXTRACT_HISTORY_LOCATION = '../data/extractHistory.json';
+    private static readonly FENCE_MESSAGE_LOCATION = '../data/fenceMessages.json';
 
     private static readonly COOP_FENCE_REP_GAIN = 0.25;
     private static readonly COOP_FENCE_REP_MULTIPLIER = 0.5;
     private static readonly COOP_FENCE_REP_GROWTH = 0.01;
+
+    private static readonly COOP_FENCE_GIFT_NUM_MIN = 2;
+    private static readonly COOP_FENCE_GIFT_NUM_MAX = 4;
 
     constructor(
         sessionId: string,
@@ -38,39 +42,35 @@ export class CooperationExtract {
         @inject('TraderHelper') protected traderHelper: TraderHelper,
         @inject('ProfileHelper') protected profileHelper: ProfileHelper,
         @inject('MailSendService') protected mailSendService: MailSendService,
-        @inject('LocalisationService') protected localisationService: LocalisationService,
+        @inject('LocaleService') protected localeService: LocaleService,
         @inject('TimeUtil') protected timeUtil: TimeUtil
     ) {
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: Cooperation extract event has been initiated. SessionID: ${sessionId}, Info: ${info}`,
+                `OpenExtracts: Cooperation extract event has been initiated. SessionID: ${sessionId}, Status: ${info.exitStatus}, Extract: ${info.exitName}`,
                 'gray'
             );
         }
 
-        // Load the extract history asynchronously
-        this.loadExtractHistory()
-            .then(history => {
-                this.extractHistory = history;
-            })
-            .catch(err => {
-                OpenExtracts.logger.log(`OpenExtracts: Failed to load extract history: ${err}`, 'red');
-            });
+        // Load the extract history.
+        this.extractHistory = this.loadExtractHistory();
 
         // Load the player PMC profile data.
         this.pmcData = this.profileHelper.getPmcProfile(sessionId);
 
+        // Engage!
         this.handleExtract(sessionId, info);
     }
 
     /**
-     * Load the fence messages from the JSON file.
+     * Loads the fence messages from the JSON file. We're doing this asynchronously to prevent the server from hanging
+     * on startup (since the messages aren't actually used until an extract occurs).
      */
     public static async loadFenceMessages(locales: ILocaleBase): Promise<void> {
         try {
             // Read the JSON file
-            const fileContent = await fs.readFile(
-                path.join(__dirname, CooperationExtract.fenceMessageLocation),
+            const fileContent = await fs.promises.readFile(
+                path.join(__dirname, CooperationExtract.FENCE_MESSAGE_LOCATION),
                 'utf-8'
             );
             const messages: FenceMessages = JSON.parse(fileContent);
@@ -78,9 +78,11 @@ export class CooperationExtract {
             // Call the method to add the messages to the database
             CooperationExtract.addFenceMessages(locales, messages);
 
-            console.log('OpenExtracts: Fence messages loaded successfully.');
+            if (OpenExtracts.config.general.debug) {
+                OpenExtracts.logger.log(`OpenExtracts: Fence messages have successfully loaded.`, 'gray');
+            }
         } catch (error) {
-            console.error('OpenExtracts: Error loading fence messages:', error);
+            OpenExtracts.logger.log(`OpenExtracts: Error loading fence messages: ${error}`, 'red');
         }
     }
 
@@ -105,14 +107,14 @@ export class CooperationExtract {
     /**
      * Load extract history from JSON file.
      */
-    private async loadExtractHistory(): Promise<ExtractHistory> {
+    private loadExtractHistory(): ExtractHistory {
         try {
-            const data = await fs.readFile(path.join(__dirname, CooperationExtract.extractHistoryLocation), 'utf8');
+            const data = fs.readFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), 'utf8');
             return JSON.parse(data);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 // File not found, creating a new one
-                await this.saveExtractHistory({});
+                this.saveExtractHistory({});
                 return {};
             } else {
                 // Some other error occurred
@@ -122,12 +124,13 @@ export class CooperationExtract {
     }
 
     /**
-     * Save extract history to JSON file.
+     * Save full extract history to JSON file.
      */
-    private async saveExtractHistory(history: ExtractHistory): Promise<void> {
+    private saveExtractHistory(history: ExtractHistory): void {
         try {
-            const jsonStr = JSON.stringify(history, null, 2);
-            await fs.writeFile(path.join(__dirname, CooperationExtract.extractHistoryLocation), jsonStr, 'utf8');
+            const jsonStr = JSON.stringify(history, null, 4);
+            fs.writeFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), jsonStr, 'utf8');
+            OpenExtracts.logger.log(`OpenExtracts: Extract history data saved successfully.`, 'gray');
         } catch (err) {
             throw new Error(`Failed to write extract history file: ${err}`);
         }
@@ -138,11 +141,20 @@ export class CooperationExtract {
      * sending gifts to the player from Fence.
      */
     private handleExtract(sessionId: string, info: IEndOfflineRaidRequestData): void {
+        // If the extract is not a coop extract or the player did not survive, do nothing.
+        if (!CooperationExtract.extractIsCoop(info.exitName) || !CooperationExtract.hasSurvived(info.exitStatus)) {
+            if (OpenExtracts.config.general.debug) {
+                OpenExtracts.logger.log(`OpenExtracts: Incompatible extract status. Doing nothing.`, 'gray');
+            }
+            return;
+        }
+
         if (OpenExtracts.config.extracts.cooperation.modifyFenceReputation) {
             const newRep = this.calculateNewFenceRep(sessionId, info.exitName);
             this.updateFenceReputation(sessionId, newRep);
             this.rememberCoopExtract(sessionId, info.exitName);
         }
+
         if (OpenExtracts.config.extracts.cooperation.sendFenceGifts) {
             this.sendFenceGift(sessionId);
         }
@@ -165,6 +177,13 @@ export class CooperationExtract {
 
         // Increase the reputation gain based on the number of days since the extract was last used.
         repGain += daysSinceLastUse * CooperationExtract.COOP_FENCE_REP_GROWTH;
+
+        // The gain is at least 0.01.
+        repGain = Math.max(repGain, 0.01);
+
+        if (OpenExtracts.config.general.debug) {
+            OpenExtracts.logger.log(`OpenExtracts: Calculated Fence reputation gain: ${repGain}`, 'gray');
+        }
 
         // Calculate the new reputation.
         let newRep = currentRep + repGain;
@@ -224,6 +243,10 @@ export class CooperationExtract {
      * Update the player's Fence reputation/standing.
      */
     private updateFenceReputation(sessionId: string, rep: number): void {
+        if (OpenExtracts.config.general.debug) {
+            OpenExtracts.logger.log(`OpenExtracts: Updating Fence reputation to: ${rep}.`, 'gray');
+        }
+
         const fence = this.pmcData.TradersInfo[Traders.FENCE];
 
         fence.standing = rep;
@@ -249,27 +272,32 @@ export class CooperationExtract {
         });
 
         // Save the updated history.
-        this.saveExtractHistory(this.extractHistory).catch(err => {
+        try {
+            this.saveExtractHistory(this.extractHistory);
+        } catch (err) {
             OpenExtracts.logger.log(`OpenExtracts: Failed to save extract history: ${err}`, 'red');
-        });
+        }
     }
 
     /**
      * Send a gift to the player from Fence.
      */
     private sendFenceGift(sessionId: string): void {
-        // Generate a message.
+        if (OpenExtracts.config.general.debug) {
+            OpenExtracts.logger.log('OpenExtracts: Sending Fence gift.', 'gray');
+        }
 
-        // Generate a gift.
-        const giftItems: Item[] = this.generateGiftItems();
+        const items: Item[] = this.generateGiftItems();
+        const message = this.selectFenceMessage();
+        const fence = this.traderHelper.getTraderById(Traders.FENCE);
 
         // Send the message and the gift.
         this.mailSendService.sendDirectNpcMessageToPlayer(
             sessionId,
-            Traders.FENCE,
+            fence,
             MessageType.MESSAGE_WITH_ITEMS,
-            this.generateFenceMessage(),
-            giftItems,
+            message,
+            items,
             this.timeUtil.getHoursAsSeconds(48)
         );
     }
@@ -282,10 +310,10 @@ export class CooperationExtract {
         const fenceItems: Item[] = this.traderHelper.getTraderAssortsById(Traders.FENCE).items;
 
         // Determine the maximum number of gifts we can generate.
-        const maxGifts = Math.min(fenceItems.length, 4); // Assuming 4 is the max number of gifts you want to send
+        const maxGifts = Math.min(fenceItems.length, CooperationExtract.COOP_FENCE_GIFT_NUM_MAX);
 
-        // Randomly choose the number of gifts (let's say between 2 to maxGifts).
-        const numGifts = Math.floor(Math.random() * (maxGifts - 1)) + 2;
+        // Randomly choose the number of gifts.
+        const numGifts = Math.floor(Math.random() * (maxGifts - 1)) + CooperationExtract.COOP_FENCE_GIFT_NUM_MIN;
 
         // Randomly select 'numGifts' unique items from the list.
         const selectedGifts: Item[] = [];
@@ -295,15 +323,35 @@ export class CooperationExtract {
             selectedGifts.push(selectedItem);
         }
 
-        return selectedGifts;
+        return this.buffGifts(selectedGifts);
+    }
+
+    /**
+     * Buff the gifts by increasing durability of guns and armor. We want them to be gifts, not trash.
+     */
+    private buffGifts(items: Item[]): Item[] {
+        for (const item of items) {
+            if (item?.upd?.Repairable) {
+                // Safely fetch the mint durability for this item.
+                const database = this.databaseServer.getTables();
+                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
+
+                // Only update the (max)durability of the item if mintDurability is not undefined.
+                if (mintDurability !== undefined) {
+                    item.upd.Repairable.Durability = item.upd.Repairable.MaxDurability = mintDurability;
+                }
+            }
+        }
+        return items;
     }
 
     /**
      * Pick a random message from Fence's imported messages.
      */
-    private generateFenceMessage(): string {
-        const key = `open_extract_${Math.floor(Math.random() * 20) + 1}`;
-        return this.localisationService.getText(key);
+    private selectFenceMessage(): string {
+        const key = `open_extracts_${Math.floor(Math.random() * 20) + 1}`;
+        const locale = this.localeService.getLocaleDb();
+        return locale[key];
     }
 
     /**
@@ -332,7 +380,10 @@ export class CooperationExtract {
         ]);
     }
 
+    /**
+     * Checks to see if the player has survived the raid.
+     */
     public static hasSurvived(exitStatus: string): boolean {
-        return exitStatus === 'survived';
+        return exitStatus === 'Survived';
     }
 }

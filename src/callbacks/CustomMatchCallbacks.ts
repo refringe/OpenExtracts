@@ -5,7 +5,7 @@ import { TraderHelper } from '@spt-aki/helpers/TraderHelper';
 import { INullResponseData } from '@spt-aki/models/eft/httpResponse/INullResponseData';
 import { IEndOfflineRaidRequestData } from '@spt-aki/models/eft/match/IEndOfflineRaidRequestData';
 import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
-import { LocalisationService } from '@spt-aki/services/LocalisationService';
+import { LocaleService } from '@spt-aki/services/LocaleService';
 import { MailSendService } from '@spt-aki/services/MailSendService';
 import { HttpResponseUtil } from '@spt-aki/utils/HttpResponseUtil';
 import { JsonUtil } from '@spt-aki/utils/JsonUtil';
@@ -23,7 +23,7 @@ export class CustomMatchCallbacks extends MatchCallbacks {
         @inject('ProfileHelper') protected profileHelper: ProfileHelper,
         @inject('TraderHelper') protected traderHelper: TraderHelper,
         @inject('MailSendService') protected mailSendService: MailSendService,
-        @inject('LocalisationService') protected localisationService: LocalisationService,
+        @inject('LocaleService') protected localeService: LocaleService,
         @inject('TimeUtil') protected timeUtil: TimeUtil
     ) {
         // Pass the parent class the callback dependencies it needs.
@@ -41,19 +41,17 @@ export class CustomMatchCallbacks extends MatchCallbacks {
         // Call the original method and get the result.
         const parentResult = super.endOfflineRaid(url, info, sessionID);
 
-        // This is the custom part... Check to see if the extract is a coop extract. If it is, fire up the event.
-        if (CooperationExtract.extractIsCoop(info.exitName) && CooperationExtract.hasSurvived(info.exitStatus)) {
-            new CooperationExtract(
-                sessionID,
-                info,
-                this.databaseServer,
-                this.traderHelper,
-                this.profileHelper,
-                this.mailSendService,
-                this.localisationService,
-                this.timeUtil
-            );
-        }
+        // Handle cooperation extracts.
+        new CooperationExtract(
+            sessionID,
+            info,
+            this.databaseServer,
+            this.traderHelper,
+            this.profileHelper,
+            this.mailSendService,
+            this.localeService,
+            this.timeUtil
+        );
 
         // Return the original method's result.
         return parentResult;

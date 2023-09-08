@@ -4,12 +4,14 @@ This is a mod for [Single Player Tarkov](https://www.sp-tarkov.com/).
 
 This mod gives you the following configurable extract options:
 
- - Make extracts available no matter what side of the map you spawned.
- - Updates the percentage that random extracts are available.
- - Updates CO-OP extracts to be useable via payment (like cars).
- - Updates no-backpack extracts to be useable with backpacks.
- - Updates cliff extracts to be useable without a paracord, red rebel, and with an armored rig.
- - Sets a maximum hold time for extracts.
+-   Make extracts available no matter what side of the map you spawned.
+-   Updates the percentage that random extracts are available.
+-   Updates CO-OP extracts to be useable via payment (like cars).
+    -   Increases Fence reputation.
+    -   Fence sends a random gift.
+-   Updates no-backpack extracts to be useable with backpacks.
+-   Updates cliff extracts to be useable without a paracord, red rebel, and with an armored rig.
+-   Sets a maximum hold time for extracts.
 
 _\*All options are disabled by default_
 

@@ -1,20 +1,47 @@
 import { Exit, ILocationBase } from '@spt-aki/models/eft/common/ILocationBase';
 import { OpenExtracts } from '../OpenExtracts';
-import { getAllEntryPoints, getConfigLocationName, getHumanLocationName, getLocations } from '../utils/locations';
+import { ILocations } from '@spt-aki/models/spt/server/ILocations';
+import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
 
 /**
- * This class is responsible for adjusting extracts according to the configuration.
+ * The `ModifyExtracts` class is responsible for orchestrating adjustments to game extracts according to a predefined
+ * configuration. It contains methods to adjust individual and global extract properties based on the current
+ * configuration settings.
  */
 export class ModifyExtracts {
+    // This is a mapping of location names as they are represented in the game to their configuration and human-readable
+    // counterparts. This is used to convert the location name from the game to the name used in the configuration file.
+    /* eslint-disable @typescript-eslint/naming-convention */
+    private readonly locationNameMappings = {
+        bigmap: { config: 'customs', human: 'Customs' },
+        factory4_day: { config: 'factoryDay', human: 'Factory (Day)' },
+        factory4_night: { config: 'factoryNight', human: 'Factory (Night)' },
+        interchange: { config: 'interchange', human: 'Interchange' },
+        laboratory: { config: 'laboratory', human: 'Laboratory' },
+        lighthouse: { config: 'lighthouse', human: 'Lighthouse' },
+        rezervbase: { config: 'reserve', human: 'Reserve' },
+        reservebase: { config: 'reserve', human: 'Reserve' }, // Duplicate entry to handle both potential inputs
+        shoreline: { config: 'shoreline', human: 'Shoreline' },
+        tarkovstreets: { config: 'streets', human: 'Streets of Tarkov' },
+        woods: { config: 'woods', human: 'Woods' },
+    };
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    /**
+     * Make the adjustments to the extracts once the class is instantiated.
+     */
     constructor() {
         this.makeAdjustments();
     }
 
     /**
-     * Orchestrates the adjustment of extracts according to the configuration.
+     * Orchestrates the adjustment of extracts according to the configuration. It iterates over enabled locations and
+     * performs various adjustments on the extracts based on the rules defined in the configuration.
      */
     private makeAdjustments(): void {
-        const locations = getLocations(OpenExtracts.container);
+        const locations: ILocations = OpenExtracts.container
+            .resolve<DatabaseServer>('DatabaseServer')
+            .getTables().locations;
         const enabledLocations = ModifyExtracts.getEnabledLocations();
 
         // Iterate over all of the enabled location's exits.
@@ -38,13 +65,13 @@ export class ModifyExtracts {
         }
 
         OpenExtracts.logger.log(
-            `OpenExtracts: Extracts have been successfully adjusted according to the configuration.`,
+            `OpenExtracts: Extracts have successfully adjusted according to the configuration.`,
             'cyan'
         );
     }
 
     /**
-     * Get a list of locations to adjust.
+     * Retrieves a set of enabled location names for extract adjustments.
      */
     private static getEnabledLocations(): Set<string> {
         return new Set<string>([
@@ -62,7 +89,7 @@ export class ModifyExtracts {
     }
 
     /**
-     * Perform adjustments that are common to all extracts.
+     * Performs common adjustments that are applicable to all extracts.
      */
     private commonAdjustments(extract: Exit): void {
         // This is SPT; all extracts should be individual and have no minimum player requirement.
@@ -71,7 +98,7 @@ export class ModifyExtracts {
     }
 
     /**
-     * Enable all entry points for an extract, making the extract useable no matter where the player spawns.
+     * Enables all entry points for a specified extract, making it usable regardless of the player's spawn location.
      */
     private enableAllEntryPoints(extract: Exit, location: ILocationBase): void {
         if (!OpenExtracts.config.extracts.ignoreEntryPoint) {
@@ -80,7 +107,7 @@ export class ModifyExtracts {
         }
 
         // Dynamically get all of the entry points for this location.
-        const allEntryPoints = getAllEntryPoints(location);
+        const allEntryPoints = this.getAllEntryPoints(location);
 
         // Update the database and log it if debug is enabled.
         if (extract.EntryPoints !== allEntryPoints) {
@@ -88,8 +115,9 @@ export class ModifyExtracts {
 
             if (OpenExtracts.config.general.debug) {
                 OpenExtracts.logger.log(
-                    `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                        location.Id
+                    `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                        location.Id,
+                        'human'
                     )} has been updated to allow all entry points: ${allEntryPoints}.`,
                     'gray'
                 );
@@ -98,7 +126,7 @@ export class ModifyExtracts {
     }
 
     /**
-     * Adjust the chance of the extract being enabled.
+     * Adjusts the probability of the extract being enabled based on the configuration settings.
      */
     private adjustChanceEnabled(extract: Exit, location: ILocationBase): void {
         if (!OpenExtracts.config.extracts.random.enabled) {
@@ -106,32 +134,27 @@ export class ModifyExtracts {
             return;
         }
 
-        const locationConfig = OpenExtracts.config.extracts.random.chances[getConfigLocationName(location.Id)];
+        const locationConfig = OpenExtracts.config.extracts.random.chances[this.getLocationName(location.Id, 'config')];
 
-        // TODO: this check shouldn't have to be made; we should already be valid at this point.
-        //       add validation for the location names in the config file for this.
-        if (locationConfig !== undefined && locationConfig[extract.Name] !== undefined) {
-            const configChance = locationConfig[extract.Name];
+        const configChance = locationConfig[extract.Name];
+        if (configChance !== extract.Chance) {
+            const originalChance = extract.Chance;
+            extract.Chance = configChance;
 
-            // TODO: AGAIN, these bounds checks shouldn't have to be made; we should already be valid at this point.
-            if (configChance >= 0 && configChance <= 100 && configChance !== extract.Chance) {
-                const originalChance = extract.Chance;
-                extract.Chance = configChance;
-
-                if (OpenExtracts.config.general.debug) {
-                    OpenExtracts.logger.log(
-                        `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                            location.Id
-                        )} has had its chance to be enabled changed from ${originalChance}% to ${configChance}%.`,
-                        'gray'
-                    );
-                }
+            if (OpenExtracts.config.general.debug) {
+                OpenExtracts.logger.log(
+                    `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                        location.Id,
+                        'human'
+                    )} has had its chance to be enabled changed from ${originalChance}% to ${configChance}%.`,
+                    'gray'
+                );
             }
         }
     }
 
     /**
-     * Adjust the maximum extraction time of an extract.
+     * Modifies the maximum extraction time of an extract based on the predefined configuration settings.
      */
     private adjustMaximumExtractTime(extract: Exit, location: ILocationBase): void {
         const originalExtractTime = extract.ExfiltrationTime;
@@ -146,8 +169,9 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                    location.Id
+                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    location.Id,
+                    'human'
                 )} has had its extraction time updated from ${originalExtractTime} seconds to ${maxTime} seconds.`,
                 'gray'
             );
@@ -155,7 +179,7 @@ export class ModifyExtracts {
     }
 
     /**
-     * Convert a cooperation extract to a payment extract.
+     * Converts a cooperation extract to a payment extract according to the configuration settings.
      */
     private convertCooperationToPayment(extract: Exit, location: ILocationBase): void {
         if (!OpenExtracts.config.extracts.cooperation.convertToPayment) {
@@ -175,8 +199,9 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                    location.Id
+                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    location.Id,
+                    'human'
                 )} has been converted to a payment extract.`,
                 'gray'
             );
@@ -184,14 +209,14 @@ export class ModifyExtracts {
     }
 
     /**
-     * Check if an extract is a cooperation extract.
+     * Determines whether the specified extract is a cooperation extract.
      */
     private static isCooperationExtract(extract: Exit): boolean {
         return extract.PassageRequirement === 'ScavCooperation';
     }
 
     /**
-     * Remove the backpack requirement from an extract.
+     * Removes the backpack requirement from an extract based on the configuration settings.
      */
     private removeBackpackRequirement(extract: Exit, location: ILocationBase): void {
         if (!OpenExtracts.config.extracts.ignoreBackpackRequirements) {
@@ -210,8 +235,9 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                    location.Id
+                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    location.Id,
+                    'human'
                 )} has had its backpack requirement removed.`,
                 'gray'
             );
@@ -219,7 +245,7 @@ export class ModifyExtracts {
     }
 
     /**
-     * Check if an extract is a backpack extract.
+     * Determines whether the specified extract has a backpack requirement.
      */
     private static isBackpackExtract(extract: Exit): boolean {
         return (
@@ -229,14 +255,14 @@ export class ModifyExtracts {
     }
 
     /**
-     * Get a list (set) of backpack extracts.
+     * Retrieves a set of backpack extract requirement tips.
      */
     private static getBackpackExtractRequirementTips(): Set<string> {
         return new Set<string>(['EXFIL_tip_backpack', 'EXFIL_INTERCHANGE_HOLE_TIP']);
     }
 
     /**
-     * Remove the cliff requirement from an extract.
+     * Removes the cliff requirement from an extract based on the configuration settings.
      */
     private removeCliffRequirements(extract: Exit, location: ILocationBase): void {
         if (!OpenExtracts.config.extracts.ignoreCliffRequirements) {
@@ -254,8 +280,9 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${getHumanLocationName(
-                    location.Id
+                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    location.Id,
+                    'human'
                 )} has had its paracord, red rebel, and armored rig requirements removed.`,
                 'gray'
             );
@@ -263,9 +290,30 @@ export class ModifyExtracts {
     }
 
     /**
-     * Check if an extract is a cliff extract.
+     * Determines whether the specified extract is a cliff extract.
      */
     private static isCliffExtract(extract: Exit): boolean {
         return extract.Name.toLowerCase().includes('alpinist') && extract.PassageRequirement === 'Reference';
+    }
+
+    /**
+     * Retrieves a comma-separated string representing all entry points for a given location.
+     */
+    private getAllEntryPoints(location: ILocationBase): string {
+        const entryPointsSet = new Set<string>();
+        for (const extract in location.exits) {
+            const entryPoints = location.exits[extract].EntryPoints.split(',');
+            entryPoints.forEach((entryPoint: string) => entryPointsSet.add(entryPoint));
+        }
+        return Array.from(entryPointsSet).join(',');
+    }
+
+    /**
+     * Retrieves the formatted location name based on the specified type. The method consults the `locationNameMappings`
+     * object to find the matching name according to the given type.
+     */
+    private getLocationName(gameLocationName: string, nameType: 'config' | 'human'): string {
+        const location = gameLocationName.toLowerCase();
+        return this.locationNameMappings[location]?.[nameType] || location;
     }
 }
