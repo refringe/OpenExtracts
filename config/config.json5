@@ -68,8 +68,8 @@
             // Item needed for payment. Default is "5449016a4bdc2d6f028b456f" (Ruble).
             item: '5449016a4bdc2d6f028b456f',
 
-            // Number of items required
-            number: 5000,
+            // Number of items required for payment. Default is 7500 (Rubles).
+            number: 7500,
 
             // Increase your Fence reputation when the CO-OP extract is used.
             modifyFenceReputation: true,
