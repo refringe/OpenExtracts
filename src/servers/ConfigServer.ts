@@ -1,7 +1,7 @@
-import * as fs from 'fs';
-import * as json5 from 'json5';
-import { join } from 'path';
-import { Configuration, Cooperation, Extracts, General, Random } from '../types';
+import * as fs from "fs";
+import * as json5 from "json5";
+import { join } from "path";
+import { Configuration, Cooperation, Extracts, General, Random } from "../types";
 
 /**
  * ConfigServer Class
@@ -22,7 +22,7 @@ export class ConfigServer {
      * Constructs a new ConfigServer instance.
      * Automatically loads and validates the configuration file specified by the relative path.
      */
-    constructor(relativeConfigPath: string = '../../config/config.json5') {
+    constructor(relativeConfigPath: string = "../../config/config.json5") {
         this.relativeConfigPath = relativeConfigPath;
         this.configPath = this.buildConfigPath();
     }
@@ -41,14 +41,14 @@ export class ConfigServer {
      */
     public loadConfig(): this {
         try {
-            const configFileContent = fs.readFileSync(this.configPath, 'utf-8');
+            const configFileContent = fs.readFileSync(this.configPath, "utf-8");
             this.config = json5.parse(configFileContent) as Configuration;
             this.isLoaded = true;
         } catch (error) {
             this.config = null;
             this.isLoaded = false;
             this.isValid = false;
-            throw new Error('CONFIG_LOAD_ERROR: Could not load configuration');
+            throw new Error("CONFIG_LOAD_ERROR: Could not load configuration");
         }
         return this;
     }
@@ -60,11 +60,11 @@ export class ConfigServer {
      */
     public validateConfig(): this {
         if (!this.isLoaded) {
-            throw new Error('CONFIG_NOT_LOADED: Configuration not loaded');
+            throw new Error("CONFIG_NOT_LOADED: Configuration not loaded");
         }
 
         if (this.config === null) {
-            throw new Error('CONFIG_IS_NULL: Configuration is null');
+            throw new Error("CONFIG_IS_NULL: Configuration is null");
         }
 
         try {
@@ -73,7 +73,7 @@ export class ConfigServer {
         } catch (error: any) {
             this.config = null;
             this.isValid = false;
-            throw new Error('CONFIG_VALIDATION_ERROR: Configuration validation failed - ' + error.message);
+            throw new Error("CONFIG_VALIDATION_ERROR: Configuration validation failed - " + error.message);
         }
 
         return this;
@@ -113,10 +113,10 @@ export class ConfigServer {
      * Ensures the 'enabled' and 'debug' fields are booleans.
      */
     private isValidGeneral(general: General): string | null {
-        if (typeof general.enabled !== 'boolean') {
+        if (typeof general.enabled !== "boolean") {
             return 'The general setting "enabled" should be a boolean.';
         }
-        if (typeof general.debug !== 'boolean') {
+        if (typeof general.debug !== "boolean") {
             return 'The general setting "debug" should be a boolean.';
         }
         return null;
@@ -127,16 +127,16 @@ export class ConfigServer {
      * Ensures that each field meets its data type and range requirements.
      */
     private isValidExtracts(extracts: Extracts): string | null {
-        if (typeof extracts.ignoreEntryPoint !== 'boolean') {
+        if (typeof extracts.ignoreEntryPoint !== "boolean") {
             return 'The extracts setting "ignore_entry_point" should be a boolean.';
         }
-        if (typeof extracts.ignoreCliffRequirements !== 'boolean') {
+        if (typeof extracts.ignoreCliffRequirements !== "boolean") {
             return 'The extracts setting "ignore_cliff_requirements" should be a boolean.';
         }
-        if (typeof extracts.ignoreBackpackRequirements !== 'boolean') {
+        if (typeof extracts.ignoreBackpackRequirements !== "boolean") {
             return 'The extracts setting "ignore_backpack_requirements" should be a boolean.';
         }
-        if (typeof extracts.maxExtractionTime !== 'number') {
+        if (typeof extracts.maxExtractionTime !== "number") {
             return 'The extracts setting "max_extraction_time" should be a number.';
         }
 
@@ -158,19 +158,19 @@ export class ConfigServer {
      */
     private isValidRandom(random: Random): string | null {
         const allowedKeysAndSubkeys = {
-            customs: ["Smuggler's Boat", 'ZB-1012', 'Old Gas Station', 'Dorms V-Ex'],
-            interchange: ['PP Exfil'],
-            laboratory: ['lab_Parking_Gate', 'lab_Hangar_Gate'],
-            lighthouse: [' V-Ex_light'], // The space here is not a mistake.
-            shoreline: ['Rock Passage', 'Pier Boat', 'CCP Temporary'],
-            streets: ['E7_car', 'E8_yard'],
-            woods: ['ZB-016', 'RUAF Gate', 'ZB-014'],
+            customs: ["Smuggler's Boat", "ZB-1012", "Old Gas Station", "Dorms V-Ex"],
+            interchange: ["PP Exfil"],
+            laboratory: ["lab_Parking_Gate", "lab_Hangar_Gate"],
+            lighthouse: [" V-Ex_light"], // The space here is not a mistake.
+            shoreline: ["Rock Passage", "Pier Boat", "CCP Temporary"],
+            streets: ["E7_car", "E8_yard"],
+            woods: ["ZB-016", "RUAF Gate", "ZB-014"],
         };
 
-        if (typeof random.enabled !== 'boolean') {
+        if (typeof random.enabled !== "boolean") {
             return 'The random setting "enabled" should be a boolean.';
         }
-        if (typeof random.chances !== 'object') {
+        if (typeof random.chances !== "object") {
             return 'The random setting "chances" should be an object.';
         }
 
@@ -188,7 +188,7 @@ export class ConfigServer {
 
         for (const [key, value] of Object.entries(random.chances)) {
             for (const [subkey, subvalue] of Object.entries(value)) {
-                if (typeof subvalue !== 'number' || subvalue < 0 || subvalue > 100) {
+                if (typeof subvalue !== "number" || subvalue < 0 || subvalue > 100) {
                     return `The extraction point "${subkey}" in the "${key}" map has an invalid chance value. It should be a number between 0 and 100, representing the percentage chance it has to be available.`;
                 }
             }
@@ -202,19 +202,19 @@ export class ConfigServer {
      * Ensures that each field meets its data type and range requirements.
      */
     private isValidCooperation(cooperation: Cooperation): string | null {
-        if (typeof cooperation.convertToPayment !== 'boolean') {
+        if (typeof cooperation.convertToPayment !== "boolean") {
             return 'The cooperation setting "convert_to_payment" should be a boolean.';
         }
-        if (typeof cooperation.item !== 'string') {
+        if (typeof cooperation.item !== "string") {
             return 'The cooperation setting "item" should be a string.';
         }
-        if (typeof cooperation.number !== 'number') {
+        if (typeof cooperation.number !== "number") {
             return 'The cooperation setting "number" should be a number.';
         }
-        if (typeof cooperation.modifyFenceReputation !== 'boolean') {
+        if (typeof cooperation.modifyFenceReputation !== "boolean") {
             return 'The cooperation setting "modifyFenceReputation" should be a boolean.';
         }
-        if (typeof cooperation.sendFenceGifts !== 'boolean') {
+        if (typeof cooperation.sendFenceGifts !== "boolean") {
             return 'The cooperation setting "sendFenceGifts" should be a boolean.';
         }
         return null;
@@ -225,7 +225,7 @@ export class ConfigServer {
      */
     public getConfig(): Configuration | null {
         if (!this.isValid) {
-            throw new Error('CONFIG_INVALID: Configuration not valid or not loaded');
+            throw new Error("CONFIG_INVALID: Configuration not valid or not loaded");
         }
         return this.config;
     }

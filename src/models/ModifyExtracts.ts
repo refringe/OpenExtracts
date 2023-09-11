@@ -1,7 +1,7 @@
-import { Exit, ILocationBase } from '@spt-aki/models/eft/common/ILocationBase';
-import { OpenExtracts } from '../OpenExtracts';
-import { ILocations } from '@spt-aki/models/spt/server/ILocations';
-import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
+import { Exit, ILocationBase } from "@spt-aki/models/eft/common/ILocationBase";
+import { ILocations } from "@spt-aki/models/spt/server/ILocations";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { OpenExtracts } from "../OpenExtracts";
 
 /**
  * The `ModifyExtracts` class is responsible for orchestrating adjustments to game extracts according to a predefined
@@ -13,17 +13,17 @@ export class ModifyExtracts {
     // counterparts. This is used to convert the location name from the game to the name used in the configuration file.
     /* eslint-disable @typescript-eslint/naming-convention */
     private readonly locationNameMappings = {
-        bigmap: { config: 'customs', human: 'Customs' },
-        factory4_day: { config: 'factoryDay', human: 'Factory (Day)' },
-        factory4_night: { config: 'factoryNight', human: 'Factory (Night)' },
-        interchange: { config: 'interchange', human: 'Interchange' },
-        laboratory: { config: 'laboratory', human: 'Laboratory' },
-        lighthouse: { config: 'lighthouse', human: 'Lighthouse' },
-        rezervbase: { config: 'reserve', human: 'Reserve' },
-        reservebase: { config: 'reserve', human: 'Reserve' }, // Duplicate entry to handle both potential inputs
-        shoreline: { config: 'shoreline', human: 'Shoreline' },
-        tarkovstreets: { config: 'streets', human: 'Streets of Tarkov' },
-        woods: { config: 'woods', human: 'Woods' },
+        bigmap: { config: "customs", human: "Customs" },
+        factory4_day: { config: "factoryDay", human: "Factory (Day)" },
+        factory4_night: { config: "factoryNight", human: "Factory (Night)" },
+        interchange: { config: "interchange", human: "Interchange" },
+        laboratory: { config: "laboratory", human: "Laboratory" },
+        lighthouse: { config: "lighthouse", human: "Lighthouse" },
+        rezervbase: { config: "reserve", human: "Reserve" },
+        reservebase: { config: "reserve", human: "Reserve" }, // Duplicate entry to handle both potential inputs
+        shoreline: { config: "shoreline", human: "Shoreline" },
+        tarkovstreets: { config: "streets", human: "Streets of Tarkov" },
+        woods: { config: "woods", human: "Woods" },
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -40,7 +40,7 @@ export class ModifyExtracts {
      */
     private makeAdjustments(): void {
         const locations: ILocations = OpenExtracts.container
-            .resolve<DatabaseServer>('DatabaseServer')
+            .resolve<DatabaseServer>("DatabaseServer")
             .getTables().locations;
         const enabledLocations = ModifyExtracts.getEnabledLocations();
 
@@ -54,7 +54,7 @@ export class ModifyExtracts {
                 this.adjustMaximumExtractTime(extract, location);
 
                 // We can finish here if this is a train extract.
-                if (extract.PassageRequirement === 'Train') {
+                if (extract.PassageRequirement === "Train") {
                     continue;
                 }
 
@@ -66,7 +66,7 @@ export class ModifyExtracts {
 
         OpenExtracts.logger.log(
             `OpenExtracts: Extracts have successfully adjusted according to the configuration.`,
-            'cyan'
+            "cyan"
         );
     }
 
@@ -75,16 +75,16 @@ export class ModifyExtracts {
      */
     private static getEnabledLocations(): Set<string> {
         return new Set<string>([
-            'bigmap',
-            'factory4_day',
-            'factory4_night',
-            'interchange',
-            'laboratory',
-            'lighthouse',
-            'rezervbase',
-            'shoreline',
-            'tarkovstreets',
-            'woods',
+            "bigmap",
+            "factory4_day",
+            "factory4_night",
+            "interchange",
+            "laboratory",
+            "lighthouse",
+            "rezervbase",
+            "shoreline",
+            "tarkovstreets",
+            "woods",
         ]);
     }
 
@@ -93,7 +93,7 @@ export class ModifyExtracts {
      */
     private commonAdjustments(extract: Exit): void {
         // This is SPT; all extracts should be individual and have no minimum player requirement.
-        extract.ExfiltrationType = 'Individual';
+        extract.ExfiltrationType = "Individual";
         extract.PlayersCount = 0;
     }
 
@@ -117,9 +117,9 @@ export class ModifyExtracts {
                 OpenExtracts.logger.log(
                     `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                         location.Id,
-                        'human'
+                        "human"
                     )} has been updated to allow all entry points: ${allEntryPoints}.`,
-                    'gray'
+                    "gray"
                 );
             }
         }
@@ -134,7 +134,12 @@ export class ModifyExtracts {
             return;
         }
 
-        const locationConfig = OpenExtracts.config.extracts.random.chances[this.getLocationName(location.Id, 'config')];
+        const locationConfig = OpenExtracts.config.extracts.random.chances[this.getLocationName(location.Id, "config")];
+
+        // Return early if we can't find the configuration information for this extract.
+        if (locationConfig === undefined || locationConfig[extract.Name] === undefined) {
+            return;
+        }
 
         const configChance = locationConfig[extract.Name];
         if (configChance !== extract.Chance) {
@@ -145,9 +150,9 @@ export class ModifyExtracts {
                 OpenExtracts.logger.log(
                     `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                         location.Id,
-                        'human'
+                        "human"
                     )} has had its chance to be enabled changed from ${originalChance}% to ${configChance}%.`,
-                    'gray'
+                    "gray"
                 );
             }
         }
@@ -171,9 +176,9 @@ export class ModifyExtracts {
             OpenExtracts.logger.log(
                 `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                     location.Id,
-                    'human'
+                    "human"
                 )} has had its extraction time updated from ${originalExtractTime} seconds to ${maxTime} seconds.`,
-                'gray'
+                "gray"
             );
         }
     }
@@ -192,8 +197,8 @@ export class ModifyExtracts {
             return;
         }
 
-        extract.PassageRequirement = 'TransferItem';
-        extract.RequirementTip = 'EXFIL_Item';
+        extract.PassageRequirement = "TransferItem";
+        extract.RequirementTip = "EXFIL_Item";
         extract.Id = OpenExtracts.config.extracts.cooperation.item;
         extract.Count = OpenExtracts.config.extracts.cooperation.number;
 
@@ -201,9 +206,9 @@ export class ModifyExtracts {
             OpenExtracts.logger.log(
                 `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                     location.Id,
-                    'human'
+                    "human"
                 )} has been converted to a payment extract.`,
-                'gray'
+                "gray"
             );
         }
     }
@@ -212,7 +217,7 @@ export class ModifyExtracts {
      * Determines whether the specified extract is a cooperation extract.
      */
     private static isCooperationExtract(extract: Exit): boolean {
-        return extract.PassageRequirement === 'ScavCooperation';
+        return extract.PassageRequirement === "ScavCooperation";
     }
 
     /**
@@ -229,17 +234,17 @@ export class ModifyExtracts {
             return;
         }
 
-        extract.PassageRequirement = 'None';
-        extract.RequiredSlot = 'FirstPrimaryWeapon';
-        extract.RequirementTip = '';
+        extract.PassageRequirement = "None";
+        extract.RequiredSlot = "FirstPrimaryWeapon";
+        extract.RequirementTip = "";
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
                 `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                     location.Id,
-                    'human'
+                    "human"
                 )} has had its backpack requirement removed.`,
-                'gray'
+                "gray"
             );
         }
     }
@@ -250,7 +255,7 @@ export class ModifyExtracts {
     private static isBackpackExtract(extract: Exit): boolean {
         return (
             ModifyExtracts.getBackpackExtractRequirementTips().has(extract.RequirementTip) &&
-            extract.RequiredSlot === 'Backpack'
+            extract.RequiredSlot === "Backpack"
         );
     }
 
@@ -258,7 +263,7 @@ export class ModifyExtracts {
      * Retrieves a set of backpack extract requirement tips.
      */
     private static getBackpackExtractRequirementTips(): Set<string> {
-        return new Set<string>(['EXFIL_tip_backpack', 'EXFIL_INTERCHANGE_HOLE_TIP']);
+        return new Set<string>(["EXFIL_tip_backpack", "EXFIL_INTERCHANGE_HOLE_TIP"]);
     }
 
     /**
@@ -275,16 +280,16 @@ export class ModifyExtracts {
             return;
         }
 
-        extract.Id = '';
-        extract.PassageRequirement = 'None';
+        extract.Id = "";
+        extract.PassageRequirement = "None";
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
                 `OpenExtracts: ${extract.Name} on ${this.getLocationName(
                     location.Id,
-                    'human'
+                    "human"
                 )} has had its paracord, red rebel, and armored rig requirements removed.`,
-                'gray'
+                "gray"
             );
         }
     }
@@ -293,7 +298,7 @@ export class ModifyExtracts {
      * Determines whether the specified extract is a cliff extract.
      */
     private static isCliffExtract(extract: Exit): boolean {
-        return extract.Name.toLowerCase().includes('alpinist') && extract.PassageRequirement === 'Reference';
+        return extract.Name.toLowerCase().includes("alpinist") && extract.PassageRequirement === "Reference";
     }
 
     /**
@@ -302,17 +307,17 @@ export class ModifyExtracts {
     private getAllEntryPoints(location: ILocationBase): string {
         const entryPointsSet = new Set<string>();
         for (const extract in location.exits) {
-            const entryPoints = location.exits[extract].EntryPoints.split(',');
+            const entryPoints = location.exits[extract].EntryPoints.split(",");
             entryPoints.forEach((entryPoint: string) => entryPointsSet.add(entryPoint));
         }
-        return Array.from(entryPointsSet).join(',');
+        return Array.from(entryPointsSet).join(",");
     }
 
     /**
      * Retrieves the formatted location name based on the specified type. The method consults the `locationNameMappings`
      * object to find the matching name according to the given type.
      */
-    private getLocationName(gameLocationName: string, nameType: 'config' | 'human'): string {
+    private getLocationName(gameLocationName: string, nameType: "config" | "human"): string {
         const location = gameLocationName.toLowerCase();
         return this.locationNameMappings[location]?.[nameType] || location;
     }

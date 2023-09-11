@@ -1,15 +1,15 @@
-import { MatchCallbacks } from '@spt-aki/callbacks/MatchCallbacks';
-import { IPostDBLoadMod } from '@spt-aki/models/external/IPostDBLoadMod';
-import { IPreAkiLoadMod } from '@spt-aki/models/external/IPreAkiLoadMod';
-import { ILocaleBase } from '@spt-aki/models/spt/server/ILocaleBase';
-import { ILogger } from '@spt-aki/models/spt/utils/ILogger';
-import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
-import { DependencyContainer } from 'tsyringe';
-import { CustomMatchCallbacks } from './callbacks/CustomMatchCallbacks';
-import { CooperationExtract } from './events/CooperationExtract';
-import { ModifyExtracts } from './models/ModifyExtracts';
-import { ConfigServer } from './servers/ConfigServer';
-import { Configuration } from './types';
+import { MatchCallbacks } from "@spt-aki/callbacks/MatchCallbacks";
+import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
+import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
+import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
+import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { DependencyContainer } from "tsyringe";
+import { CustomMatchCallbacks } from "./callbacks/CustomMatchCallbacks";
+import { CooperationExtract } from "./events/CooperationExtract";
+import { ModifyExtracts } from "./models/ModifyExtracts";
+import { ConfigServer } from "./servers/ConfigServer";
+import { Configuration } from "./types";
 
 /**
  * The main class of the OpenExtracts mod.
@@ -27,14 +27,14 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         OpenExtracts.container = container;
 
         // Resolve the logger and save it to the static logger property for simple access.
-        OpenExtracts.logger = container.resolve<ILogger>('WinstonLogger');
+        OpenExtracts.logger = container.resolve<ILogger>("WinstonLogger");
 
         // Load and validate the configuration file, saving it to the static config property for simple access.
         try {
             OpenExtracts.config = new ConfigServer().loadConfig().validateConfig().getConfig();
         } catch (error: any) {
             OpenExtracts.config = null; // Set the config to null so we know it's failed to load or validate.
-            OpenExtracts.logger.log(`OpenExtracts: Failed to load or validate configuration: ${error.message}`, 'red');
+            OpenExtracts.logger.log(`OpenExtracts: Failed to load or validate configuration: ${error.message}`, "red");
         }
 
         // Set a flag so we know that we shouldn't continue when the postDBLoad method fires... just setting the config
@@ -42,7 +42,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         // loaded and valid yet.
         if (OpenExtracts.config?.general?.enabled === false) {
             OpenExtracts.config = null;
-            OpenExtracts.logger.log('OpenExtracts is disabled in the config file.', 'red');
+            OpenExtracts.logger.log("OpenExtracts is disabled in the config file.", "red");
         }
 
         // If the configuration is null at this point we can stop here.
@@ -54,8 +54,8 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         // it's place. We're using this to get information about an extract after one's used, and this is only needed
         // if we're modifying the fence reputation or sending Fence gifts after a cooperation extract.
         if (this.coopFenceOpsEnabled()) {
-            container.register<CustomMatchCallbacks>('CustomMatchCallbacks', CustomMatchCallbacks);
-            container.register<MatchCallbacks>('MatchCallbacks', { useToken: 'CustomMatchCallbacks' });
+            container.register<CustomMatchCallbacks>("CustomMatchCallbacks", CustomMatchCallbacks);
+            container.register<MatchCallbacks>("MatchCallbacks", { useToken: "CustomMatchCallbacks" });
         }
     }
 
@@ -80,7 +80,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         // Load the Fence locale messages. These are only needed if we're modifying the fence reputation or sending
         // Fence gifts after a cooperation extract.
         if (this.coopFenceOpsEnabled()) {
-            const locales: ILocaleBase = container.resolve<DatabaseServer>('DatabaseServer').getTables().locales;
+            const locales: ILocaleBase = container.resolve<DatabaseServer>("DatabaseServer").getTables().locales;
             CooperationExtract.loadFenceMessages(locales); // Async function, but we don't need to wait for it.
         }
 

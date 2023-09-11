@@ -1,20 +1,20 @@
-import { ProfileHelper } from '@spt-aki/helpers/ProfileHelper';
-import { TraderHelper } from '@spt-aki/helpers/TraderHelper';
-import { IPmcData } from '@spt-aki/models/eft/common/IPmcData';
-import { Item } from '@spt-aki/models/eft/common/tables/IItem';
-import { IEndOfflineRaidRequestData } from '@spt-aki/models/eft/match/IEndOfflineRaidRequestData';
-import { MessageType } from '@spt-aki/models/enums/MessageType';
-import { Traders } from '@spt-aki/models/enums/Traders';
-import { ILocaleBase } from '@spt-aki/models/spt/server/ILocaleBase';
-import { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
-import { LocaleService } from '@spt-aki/services/LocaleService';
-import { MailSendService } from '@spt-aki/services/MailSendService';
-import { TimeUtil } from '@spt-aki/utils/TimeUtil';
-import * as fs from 'fs';
-import path from 'path';
-import { inject, injectable } from 'tsyringe';
-import { OpenExtracts } from '../OpenExtracts';
-import { ExtractHistory, FenceMessages } from '../types';
+import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
+import { TraderHelper } from "@spt-aki/helpers/TraderHelper";
+import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
+import { Item } from "@spt-aki/models/eft/common/tables/IItem";
+import { IEndOfflineRaidRequestData } from "@spt-aki/models/eft/match/IEndOfflineRaidRequestData";
+import { MessageType } from "@spt-aki/models/enums/MessageType";
+import { Traders } from "@spt-aki/models/enums/Traders";
+import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
+import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { LocaleService } from "@spt-aki/services/LocaleService";
+import { MailSendService } from "@spt-aki/services/MailSendService";
+import { TimeUtil } from "@spt-aki/utils/TimeUtil";
+import * as fs from "fs";
+import path from "path";
+import { inject, injectable } from "tsyringe";
+import { OpenExtracts } from "../OpenExtracts";
+import { ExtractHistory, FenceMessages } from "../types";
 
 /**
  * This class is initialized when the player chooses to extract from a coop extract. It's used to modify the fence rep
@@ -25,8 +25,8 @@ export class CooperationExtract {
     private pmcData: IPmcData;
     private extractHistory: ExtractHistory = {};
 
-    private static readonly EXTRACT_HISTORY_LOCATION = '../data/extractHistory.json';
-    private static readonly FENCE_MESSAGE_LOCATION = '../data/fenceMessages.json';
+    private static readonly EXTRACT_HISTORY_LOCATION = "../data/extractHistory.json";
+    private static readonly FENCE_MESSAGE_LOCATION = "../data/fenceMessages.json";
 
     private static readonly COOP_FENCE_REP_GAIN = 0.25;
     private static readonly COOP_FENCE_REP_MULTIPLIER = 0.5;
@@ -38,17 +38,17 @@ export class CooperationExtract {
     constructor(
         sessionId: string,
         info: IEndOfflineRaidRequestData,
-        @inject('DatabaseServer') protected databaseServer: DatabaseServer,
-        @inject('TraderHelper') protected traderHelper: TraderHelper,
-        @inject('ProfileHelper') protected profileHelper: ProfileHelper,
-        @inject('MailSendService') protected mailSendService: MailSendService,
-        @inject('LocaleService') protected localeService: LocaleService,
-        @inject('TimeUtil') protected timeUtil: TimeUtil
+        @inject("DatabaseServer") protected databaseServer: DatabaseServer,
+        @inject("TraderHelper") protected traderHelper: TraderHelper,
+        @inject("ProfileHelper") protected profileHelper: ProfileHelper,
+        @inject("MailSendService") protected mailSendService: MailSendService,
+        @inject("LocaleService") protected localeService: LocaleService,
+        @inject("TimeUtil") protected timeUtil: TimeUtil
     ) {
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
                 `OpenExtracts: Cooperation extract event has been initiated. SessionID: ${sessionId}, Status: ${info.exitStatus}, Extract: ${info.exitName}`,
-                'gray'
+                "gray"
             );
         }
 
@@ -71,7 +71,7 @@ export class CooperationExtract {
             // Read the JSON file
             const fileContent = await fs.promises.readFile(
                 path.join(__dirname, CooperationExtract.FENCE_MESSAGE_LOCATION),
-                'utf-8'
+                "utf-8"
             );
             const messages: FenceMessages = JSON.parse(fileContent);
 
@@ -79,10 +79,10 @@ export class CooperationExtract {
             CooperationExtract.addFenceMessages(locales, messages);
 
             if (OpenExtracts.config.general.debug) {
-                OpenExtracts.logger.log(`OpenExtracts: Fence messages have successfully loaded.`, 'gray');
+                OpenExtracts.logger.log(`OpenExtracts: Fence messages have successfully loaded.`, "gray");
             }
         } catch (error) {
-            OpenExtracts.logger.log(`OpenExtracts: Error loading fence messages: ${error}`, 'red');
+            OpenExtracts.logger.log(`OpenExtracts: Error loading fence messages: ${error}`, "red");
         }
     }
 
@@ -109,10 +109,10 @@ export class CooperationExtract {
      */
     private loadExtractHistory(): ExtractHistory {
         try {
-            const data = fs.readFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), 'utf8');
+            const data = fs.readFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), "utf8");
             return JSON.parse(data);
         } catch (err) {
-            if (err.code === 'ENOENT') {
+            if (err.code === "ENOENT") {
                 // File not found, creating a new one
                 this.saveExtractHistory({});
                 return {};
@@ -129,8 +129,8 @@ export class CooperationExtract {
     private saveExtractHistory(history: ExtractHistory): void {
         try {
             const jsonStr = JSON.stringify(history, null, 4);
-            fs.writeFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), jsonStr, 'utf8');
-            OpenExtracts.logger.log(`OpenExtracts: Extract history data saved successfully.`, 'gray');
+            fs.writeFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), jsonStr, "utf8");
+            OpenExtracts.logger.log(`OpenExtracts: Extract history data saved successfully.`, "gray");
         } catch (err) {
             throw new Error(`Failed to write extract history file: ${err}`);
         }
@@ -144,7 +144,7 @@ export class CooperationExtract {
         // If the extract is not a coop extract or the player did not survive, do nothing.
         if (!CooperationExtract.extractIsCoop(info.exitName) || !CooperationExtract.hasSurvived(info.exitStatus)) {
             if (OpenExtracts.config.general.debug) {
-                OpenExtracts.logger.log(`OpenExtracts: Incompatible extract status. Doing nothing.`, 'gray');
+                OpenExtracts.logger.log(`OpenExtracts: Incompatible extract status. Doing nothing.`, "gray");
             }
             return;
         }
@@ -182,7 +182,7 @@ export class CooperationExtract {
         repGain = Math.max(repGain, 0.01);
 
         if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(`OpenExtracts: Calculated Fence reputation gain: ${repGain}`, 'gray');
+            OpenExtracts.logger.log(`OpenExtracts: Calculated Fence reputation gain: ${repGain}`, "gray");
         }
 
         // Calculate the new reputation.
@@ -244,7 +244,7 @@ export class CooperationExtract {
      */
     private updateFenceReputation(sessionId: string, rep: number): void {
         if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(`OpenExtracts: Updating Fence reputation to: ${rep}.`, 'gray');
+            OpenExtracts.logger.log(`OpenExtracts: Updating Fence reputation to: ${rep}.`, "gray");
         }
 
         const fence = this.pmcData.TradersInfo[Traders.FENCE];
@@ -275,7 +275,7 @@ export class CooperationExtract {
         try {
             this.saveExtractHistory(this.extractHistory);
         } catch (err) {
-            OpenExtracts.logger.log(`OpenExtracts: Failed to save extract history: ${err}`, 'red');
+            OpenExtracts.logger.log(`OpenExtracts: Failed to save extract history: ${err}`, "red");
         }
     }
 
@@ -284,7 +284,7 @@ export class CooperationExtract {
      */
     private sendFenceGift(sessionId: string): void {
         if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log('OpenExtracts: Sending Fence gift.', 'gray');
+            OpenExtracts.logger.log("OpenExtracts: Sending Fence gift.", "gray");
         }
 
         const items: Item[] = this.generateGiftItems();
@@ -373,10 +373,10 @@ export class CooperationExtract {
      */
     private static getCoopExtractNames(): Set<string> {
         return new Set<string>([
-            'Interchange Cooperation', // Interchange
-            'tunnel_shared', // Lighthouse
-            'EXFIL_ScavCooperation', // Reserve
-            'Factory Gate', // Woods
+            "Interchange Cooperation", // Interchange
+            "tunnel_shared", // Lighthouse
+            "EXFIL_ScavCooperation", // Reserve
+            "Factory Gate", // Woods
         ]);
     }
 
@@ -384,6 +384,6 @@ export class CooperationExtract {
      * Checks to see if the player has survived the raid.
      */
     public static hasSurvived(exitStatus: string): boolean {
-        return exitStatus === 'Survived';
+        return exitStatus === "Survived";
     }
 }
