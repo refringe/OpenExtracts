@@ -12,7 +12,7 @@ export class ModifyExtracts {
     // This is a mapping of location names as they are represented in the game to their configuration and human-readable
     // counterparts. This is used to convert the location name from the game to the name used in the configuration file.
     /* eslint-disable @typescript-eslint/naming-convention */
-    private readonly locationNameMappings = {
+    private static readonly locationNameMappings = {
         bigmap: { config: "customs", human: "Customs" },
         factory4_day: { config: "factoryDay", human: "Factory (Day)" },
         factory4_night: { config: "factoryNight", human: "Factory (Night)" },
@@ -319,6 +319,6 @@ export class ModifyExtracts {
      */
     private getLocationName(gameLocationName: string, nameType: "config" | "human"): string {
         const location = gameLocationName.toLowerCase();
-        return this.locationNameMappings[location]?.[nameType] || location;
+        return ModifyExtracts.locationNameMappings[location]?.[nameType] || location;
     }
 }

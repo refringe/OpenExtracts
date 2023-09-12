@@ -1,9 +1,9 @@
 import { MatchCallbacks } from "@spt-aki/callbacks/MatchCallbacks";
 import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
 import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { DependencyContainer } from "tsyringe";
 import { CustomMatchCallbacks } from "./callbacks/CustomMatchCallbacks";
 import { CooperationExtract } from "./events/CooperationExtract";
@@ -34,7 +34,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
             OpenExtracts.config = new ConfigServer().loadConfig().validateConfig().getConfig();
         } catch (error: any) {
             OpenExtracts.config = null; // Set the config to null so we know it's failed to load or validate.
-            OpenExtracts.logger.log(`OpenExtracts: Failed to load or validate configuration: ${error.message}`, "red");
+            OpenExtracts.logger.log(`OpenExtracts: ${error.message}`, "red");
         }
 
         // Set a flag so we know that we shouldn't continue when the postDBLoad method fires... just setting the config
