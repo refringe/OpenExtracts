@@ -11,6 +11,9 @@ import { ModifyExtracts } from "./models/ModifyExtracts";
 import { ConfigServer } from "./servers/ConfigServer";
 import { Configuration } from "./types";
 
+// TODO: The AJV schema validation is required in prod., add it (and it's deps) to the .buildignore file.
+// TODO: Test that the empty JSON history works in prod.
+
 /**
  * The main class of the OpenExtracts mod.
  */

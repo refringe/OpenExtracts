@@ -1,3 +1,6 @@
+import Ajv, { ValidateFunction } from "ajv";
+import { ExtractHistorySchema } from "../schemas/ExtractHistorySchema";
+import { JSONSchema7 } from "json-schema";
 import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
 import { TraderHelper } from "@spt-aki/helpers/TraderHelper";
 import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
@@ -25,6 +28,10 @@ export class CooperationExtract {
     private pmcData: IPmcData;
     private extractHistory: ExtractHistory = {};
 
+    private ajv: Ajv;
+    private validateSchema: ValidateFunction;
+    private extractHistorySchema: JSONSchema7;
+
     private static readonly EXTRACT_HISTORY_LOCATION = "../data/extractHistory.json";
     private static readonly FENCE_MESSAGE_LOCATION = "../data/fenceMessages.json";
 
@@ -51,6 +58,11 @@ export class CooperationExtract {
                 "gray"
             );
         }
+
+        // Configure the JSON schema validator.
+        this.ajv = new Ajv();
+        this.extractHistorySchema = ExtractHistorySchema.schema;
+        this.validateSchema = this.ajv.compile(this.extractHistorySchema);
 
         // Load the extract history.
         this.extractHistory = this.loadExtractHistory();
@@ -110,7 +122,14 @@ export class CooperationExtract {
     private loadExtractHistory(): ExtractHistory {
         try {
             const data = fs.readFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), "utf8");
-            return JSON.parse(data);
+            const parsedData = JSON.parse(data) as unknown; // Still needs validation.
+
+            // Validate the JSON data
+            if (!this.validateSchema(parsedData)) {
+                throw new Error(`Invalid JSON data: ${JSON.stringify(this.validateSchema.errors)}`);
+            }
+
+            return parsedData as ExtractHistory; // Safe cast after validation.
         } catch (err) {
             if (err.code === "ENOENT") {
                 // File not found, creating a new one
@@ -128,6 +147,11 @@ export class CooperationExtract {
      */
     private saveExtractHistory(history: ExtractHistory): void {
         try {
+            // Validate the JSON data
+            if (!this.validateSchema(history)) {
+                throw new Error(`Invalid JSON data: ${JSON.stringify(this.validateSchema.errors)}`);
+            }
+
             const jsonStr = JSON.stringify(history, null, 4);
             fs.writeFileSync(path.join(__dirname, CooperationExtract.EXTRACT_HISTORY_LOCATION), jsonStr, "utf8");
             OpenExtracts.logger.log(`OpenExtracts: Extract history data saved successfully.`, "gray");
