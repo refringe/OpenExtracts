@@ -10,7 +10,7 @@
  * - Creates a distribution directory and a temporary working directory.
  * - Copies files to the temporary directory while respecting the .buildignore rules.
  * - Creates a zip archive of the project files.
- * - Moves the zip file to the correct location in the distribution directory.
+ * - Moves the zip file to the root of the distribution directory.
  * - Cleans up the temporary directory.
  *
  * It's typical that this script be customized to suit the needs of each project. For example, the script can be updated

@@ -11,17 +11,19 @@
         "build": "node ./build.mjs",
         "buildinfo": "node ./build.mjs --verbose"
     },
+    "dependencies": {
+        "ajv": "^8.12",
+        "json5": "^2.2"
+    },
     "devDependencies": {
         "@types/node": "20.4.5",
         "@typescript-eslint/eslint-plugin": "6.2.0",
         "@typescript-eslint/parser": "6.2.0",
-        "ajv": "^8.12",
         "archiver": "^6.0",
         "eslint": "8.46.0",
         "eslint-config-prettier": "^8.8",
         "eslint-plugin-prettier": "^4.2",
         "ignore": "^5.2",
-        "json5": "^2.2",
         "os": "^0.1",
         "prettier": "^3.0",
         "tsyringe": "4.8.0",
