@@ -1,4 +1,5 @@
 import Ajv, { ValidateFunction } from "ajv";
+import addFormats from "ajv-formats";
 import { ExtractHistorySchema } from "../schemas/ExtractHistorySchema";
 import { JSONSchema7 } from "json-schema";
 import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
@@ -61,6 +62,7 @@ export class CooperationExtract {
 
         // Configure the JSON schema validator.
         this.ajv = new Ajv();
+        addFormats(this.ajv);
         this.extractHistorySchema = ExtractHistorySchema.schema;
         this.validateSchema = this.ajv.compile(this.extractHistorySchema);
 
