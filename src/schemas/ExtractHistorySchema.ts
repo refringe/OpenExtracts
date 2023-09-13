@@ -10,7 +10,7 @@ export class ExtractHistorySchema {
                 type: "object",
                 properties: {
                     extractName: { type: "string" },
-                    timestamp: { type: "string", format: "date-time" },
+                    timestamp: { type: "object", format: "date-time" },
                 },
                 required: ["extractName", "timestamp"],
             },
