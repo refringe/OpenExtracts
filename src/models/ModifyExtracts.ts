@@ -115,7 +115,7 @@ export class ModifyExtracts {
 
             if (OpenExtracts.config.general.debug) {
                 OpenExtracts.logger.log(
-                    `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                         location.Id,
                         "human"
                     )} has been updated to allow all entry points: ${allEntryPoints}.`,
@@ -137,18 +137,18 @@ export class ModifyExtracts {
         const locationConfig = OpenExtracts.config.extracts.random.chances[this.getLocationName(location.Id, "config")];
 
         // Return early if we can't find the configuration information for this extract.
-        if (locationConfig === undefined || locationConfig[extract.Name] === undefined) {
+        if (locationConfig === undefined || locationConfig[extract.Name.trim()] === undefined) {
             return;
         }
 
-        const configChance = locationConfig[extract.Name];
+        const configChance = locationConfig[extract.Name.trim()];
         if (configChance !== extract.Chance) {
             const originalChance = extract.Chance;
             extract.Chance = configChance;
 
             if (OpenExtracts.config.general.debug) {
                 OpenExtracts.logger.log(
-                    `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                    `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                         location.Id,
                         "human"
                     )} has had its chance to be enabled changed from ${originalChance}% to ${configChance}%.`,
@@ -174,7 +174,7 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
                 )} has had its extraction time updated from ${originalExtractTime} seconds to ${maxTime} seconds.`,
@@ -204,7 +204,7 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
                 )} has been converted to a payment extract.`,
@@ -240,7 +240,7 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
                 )} has had its backpack requirement removed.`,
@@ -285,7 +285,7 @@ export class ModifyExtracts {
 
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(
-                `OpenExtracts: ${extract.Name} on ${this.getLocationName(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
                 )} has had its paracord, red rebel, and armored rig requirements removed.`,
@@ -298,7 +298,7 @@ export class ModifyExtracts {
      * Determines whether the specified extract is a cliff extract.
      */
     private static isCliffExtract(extract: Exit): boolean {
-        return extract.Name.toLowerCase().includes("alpinist") && extract.PassageRequirement === "Reference";
+        return extract.Name.trim().toLowerCase().includes("alpinist") && extract.PassageRequirement === "Reference";
     }
 
     /**

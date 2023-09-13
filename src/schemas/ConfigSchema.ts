@@ -59,9 +59,9 @@ export class ConfigSchema {
                                     lighthouse: {
                                         type: "object",
                                         properties: {
-                                            " V-Ex_light": { type: "number", minimum: 0, maximum: 100 },
+                                            "V-Ex_light": { type: "number", minimum: 0, maximum: 100 },
                                         },
-                                        required: [" V-Ex_light"],
+                                        required: ["V-Ex_light"],
                                         additionalProperties: false,
                                     },
                                     shoreline: {
