@@ -1,7 +1,3 @@
-import Ajv, { ValidateFunction } from "ajv";
-import addFormats from "ajv-formats";
-import { ExtractHistorySchema } from "../schemas/ExtractHistorySchema";
-import { JSONSchema7 } from "json-schema";
 import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
 import { TraderHelper } from "@spt-aki/helpers/TraderHelper";
 import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
@@ -14,10 +10,14 @@ import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { LocaleService } from "@spt-aki/services/LocaleService";
 import { MailSendService } from "@spt-aki/services/MailSendService";
 import { TimeUtil } from "@spt-aki/utils/TimeUtil";
+import Ajv, { ValidateFunction } from "ajv";
+import addFormats from "ajv-formats";
 import * as fs from "fs";
+import { JSONSchema7 } from "json-schema";
 import path from "path";
 import { inject, injectable } from "tsyringe";
 import { OpenExtracts } from "../OpenExtracts";
+import { ExtractHistorySchema } from "../schemas/ExtractHistorySchema";
 import { ExtractHistory, FenceMessages } from "../types";
 
 /**
@@ -177,7 +177,7 @@ export class CooperationExtract {
 
         if (OpenExtracts.config.extracts.cooperation.modifyFenceReputation) {
             const newRep = this.calculateNewFenceRep(sessionId, info.exitName);
-            this.updateFenceReputation(sessionId, newRep);
+            this.updateFenceReputation(newRep);
             this.rememberCoopExtract(sessionId, info.exitName);
         }
 
@@ -268,7 +268,7 @@ export class CooperationExtract {
     /**
      * Update the player's Fence reputation/standing.
      */
-    private updateFenceReputation(sessionId: string, rep: number): void {
+    private updateFenceReputation(rep: number): void {
         if (OpenExtracts.config.general.debug) {
             OpenExtracts.logger.log(`OpenExtracts: Updating Fence reputation to: ${rep}.`, "gray");
         }
@@ -278,7 +278,7 @@ export class CooperationExtract {
         fence.standing = rep;
 
         // After the reputation is updated, check if the player has leveled up Fence.
-        this.traderHelper.lvlUp(Traders.FENCE, sessionId);
+        this.traderHelper.lvlUp(Traders.FENCE, this.pmcData);
         fence.loyaltyLevel = Math.max(fence.loyaltyLevel, 1);
     }
 
@@ -333,7 +333,7 @@ export class CooperationExtract {
      */
     private generateGiftItems(): Item[] {
         // Load up the items that Fence has available.
-        const fenceItems: Item[] = this.traderHelper.getTraderAssortsById(Traders.FENCE).items;
+        const fenceItems: Item[] = this.traderHelper.getTraderAssortsByTraderId(Traders.FENCE).items;
 
         // Determine the maximum number of gifts we can generate.
         const maxGifts = Math.min(fenceItems.length, CooperationExtract.COOP_FENCE_GIFT_NUM_MAX);
@@ -353,18 +353,46 @@ export class CooperationExtract {
     }
 
     /**
-     * Buff the gifts by increasing durability of guns and armor. We want them to be gifts, not trash.
+     * Buff the gifts by increasing durability, use counts, etc... back to full. We want them to be gifts, not trash.
      */
     private buffGifts(items: Item[]): Item[] {
-        for (const item of items) {
-            if (item?.upd?.Repairable) {
-                // Safely fetch the mint durability for this item.
-                const database = this.databaseServer.getTables();
-                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
+        const database = this.databaseServer.getTables();
 
-                // Only update the (max)durability of the item if mintDurability is not undefined.
+        for (const item of items) {
+            // Set item durability to full.
+            if (item?.upd?.Repairable) {
+                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
                 if (mintDurability !== undefined) {
                     item.upd.Repairable.Durability = item.upd.Repairable.MaxDurability = mintDurability;
+                }
+            }
+
+            // Updated medical items to full uses.
+            if (item?.upd?.MedKit) {
+                const mintHpResource = database?.templates?.items[item._tpl]?._props?.MaxHpResource;
+                if (mintHpResource !== undefined) {
+                    item.upd.MedKit.HpResource = mintHpResource;
+                }
+            }
+
+            // Clean face shields.
+            if (item?.upd?.FaceShield) {
+                item.upd.FaceShield.Hits = 0;
+            }
+
+            // Set food and drink items to full resource.
+            if (item?.upd?.FoodDrink) {
+                const mintResource = database?.templates?.items[item._tpl]?._props?.MaxResource;
+                if (mintResource !== undefined) {
+                    item.upd.FoodDrink.HpPercent = mintResource;
+                }
+            }
+
+            // Set keys to full uses.
+            if (item?.upd?.Key) {
+                const mintNumberOfUsages = database?.templates?.items[item._tpl]?._props?.MaximumNumberOfUsage;
+                if (mintNumberOfUsages !== undefined) {
+                    item.upd.Key.NumberOfUsages = mintNumberOfUsages;
                 }
             }
         }
