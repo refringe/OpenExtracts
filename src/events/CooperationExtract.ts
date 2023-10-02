@@ -353,18 +353,46 @@ export class CooperationExtract {
     }
 
     /**
-     * Buff the gifts by increasing durability of guns and armor. We want them to be gifts, not trash.
+     * Buff the gifts by increasing durability, use counts, etc... back to full. We want them to be gifts, not trash.
      */
     private buffGifts(items: Item[]): Item[] {
-        for (const item of items) {
-            if (item?.upd?.Repairable) {
-                // Safely fetch the mint durability for this item.
-                const database = this.databaseServer.getTables();
-                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
+        const database = this.databaseServer.getTables();
 
-                // Only update the (max)durability of the item if mintDurability is not undefined.
+        for (const item of items) {
+            // Set item durability to full.
+            if (item?.upd?.Repairable) {
+                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
                 if (mintDurability !== undefined) {
                     item.upd.Repairable.Durability = item.upd.Repairable.MaxDurability = mintDurability;
+                }
+            }
+
+            // Updated medical items to full uses.
+            if (item?.upd?.MedKit) {
+                const mintHpResource = database?.templates?.items[item._tpl]?._props?.MaxHpResource;
+                if (mintHpResource !== undefined) {
+                    item.upd.MedKit.HpResource = mintHpResource;
+                }
+            }
+
+            // Clean face shields.
+            if (item?.upd?.FaceShield) {
+                item.upd.FaceShield.Hits = 0;
+            }
+
+            // Set food and drink items to full resource.
+            if (item?.upd?.FoodDrink) {
+                const mintResource = database?.templates?.items[item._tpl]?._props?.MaxResource;
+                if (mintResource !== undefined) {
+                    item.upd.FoodDrink.HpPercent = mintResource;
+                }
+            }
+
+            // Set keys to full uses.
+            if (item?.upd?.Key) {
+                const mintNumberOfUsages = database?.templates?.items[item._tpl]?._props?.MaximumNumberOfUsage;
+                if (mintNumberOfUsages !== undefined) {
+                    item.upd.Key.NumberOfUsages = mintNumberOfUsages;
                 }
             }
         }
