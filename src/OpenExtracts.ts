@@ -1,13 +1,13 @@
 import { MatchCallbacks } from "@spt-aki/callbacks/MatchCallbacks";
 import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
 import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
+import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
-import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { DependencyContainer } from "tsyringe";
+import { ExtractAdjuster } from "./adjusters/ExtractAdjuster";
 import { CustomMatchCallbacks } from "./callbacks/CustomMatchCallbacks";
 import { CooperationExtract } from "./events/CooperationExtract";
-import { ModifyExtracts } from "./models/ModifyExtracts";
 import { ConfigServer } from "./servers/ConfigServer";
 import { Configuration } from "./types";
 
@@ -85,7 +85,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         }
 
         // Modify the extracts based on the configuration.
-        new ModifyExtracts();
+        new ExtractAdjuster();
     }
 }
 

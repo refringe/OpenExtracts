@@ -4,11 +4,11 @@ import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { OpenExtracts } from "../OpenExtracts";
 
 /**
- * The `ModifyExtracts` class is responsible for orchestrating adjustments to game extracts according to a predefined
+ * The `ExtractAdjuster` class is responsible for orchestrating adjustments to game extracts according to a predefined
  * configuration. It contains methods to adjust individual and global extract properties based on the current
  * configuration settings.
  */
-export class ModifyExtracts {
+export class ExtractAdjuster {
     // This is a mapping of location names as they are represented in the game to their configuration and human-readable
     // counterparts. This is used to convert the location name from the game to the name used in the configuration file.
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -42,7 +42,7 @@ export class ModifyExtracts {
         const locations: ILocations = OpenExtracts.container
             .resolve<DatabaseServer>("DatabaseServer")
             .getTables().locations;
-        const enabledLocations = ModifyExtracts.getEnabledLocations();
+        const enabledLocations = ExtractAdjuster.getEnabledLocations();
 
         // Iterate over all of the enabled location's exits.
         for (const locationName of enabledLocations) {
@@ -192,7 +192,7 @@ export class ModifyExtracts {
             return;
         }
 
-        if (!ModifyExtracts.isCooperationExtract(extract)) {
+        if (!ExtractAdjuster.isCooperationExtract(extract)) {
             // This isn't a cooperation extract;
             return;
         }
@@ -229,7 +229,7 @@ export class ModifyExtracts {
             return;
         }
 
-        if (!ModifyExtracts.isBackpackExtract(extract)) {
+        if (!ExtractAdjuster.isBackpackExtract(extract)) {
             // This isn't a backpack extract;
             return;
         }
@@ -254,7 +254,7 @@ export class ModifyExtracts {
      */
     private static isBackpackExtract(extract: Exit): boolean {
         return (
-            ModifyExtracts.getBackpackExtractRequirementTips().has(extract.RequirementTip) &&
+            ExtractAdjuster.getBackpackExtractRequirementTips().has(extract.RequirementTip) &&
             extract.RequiredSlot === "Backpack"
         );
     }
@@ -275,7 +275,7 @@ export class ModifyExtracts {
             return;
         }
 
-        if (!ModifyExtracts.isCliffExtract(extract)) {
+        if (!ExtractAdjuster.isCliffExtract(extract)) {
             // This isn't a cliff extract;
             return;
         }
@@ -319,6 +319,6 @@ export class ModifyExtracts {
      */
     private getLocationName(gameLocationName: string, nameType: "config" | "human"): string {
         const location = gameLocationName.toLowerCase();
-        return ModifyExtracts.locationNameMappings[location]?.[nameType] || location;
+        return ExtractAdjuster.locationNameMappings[location]?.[nameType] || location;
     }
 }
