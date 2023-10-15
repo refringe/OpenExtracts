@@ -1,13 +1,10 @@
 import { MatchCallbacks } from "@spt-aki/callbacks/MatchCallbacks";
 import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
 import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { DependencyContainer } from "tsyringe";
 import { ExtractAdjuster } from "./adjusters/ExtractAdjuster";
 import { CustomMatchCallbacks } from "./callbacks/CustomMatchCallbacks";
-import { CooperationExtract } from "./events/CooperationExtract";
 import { ConfigServer } from "./servers/ConfigServer";
 import { Configuration } from "./types";
 
@@ -52,7 +49,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
 
         // Register our custom MatchCallbacks class and overwrite the token on the original class so ours is used in
         // it's place. We're using this to get information about an extract after one's used, and this is only needed
-        // if we're modifying the fence reputation or sending Fence gifts after a cooperation extract.
+        // if we're modifying the fence reputation after a cooperation extract.
         if (this.coopFenceOpsEnabled()) {
             container.register<CustomMatchCallbacks>("CustomMatchCallbacks", CustomMatchCallbacks);
             container.register<MatchCallbacks>("MatchCallbacks", { useToken: "CustomMatchCallbacks" });
@@ -64,7 +61,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
      */
     private coopFenceOpsEnabled(): boolean {
         const coop = OpenExtracts.config.extracts.cooperation;
-        return coop.convertToPayment && (coop.modifyFenceReputation || coop.sendFenceGifts);
+        return coop.convertToPayment && coop.modifyFenceReputation;
     }
 
     /**
@@ -75,13 +72,6 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         // failed to load, failed to validate, or if the mod is disabled in the configuration file.
         if (OpenExtracts.config === null) {
             return;
-        }
-
-        // Load the Fence locale messages. These are only needed if we're modifying the fence reputation or sending
-        // Fence gifts after a cooperation extract.
-        if (this.coopFenceOpsEnabled()) {
-            const locales: ILocaleBase = container.resolve<DatabaseServer>("DatabaseServer").getTables().locales;
-            CooperationExtract.loadFenceMessages(locales); // Async function, but we don't need to wait for it.
         }
 
         // Modify the extracts based on the configuration.

@@ -8,7 +8,6 @@ This mod gives you the following configurable extract options:
 -   Updates the percentage that random extracts are available.
 -   Updates CO-OP extracts to be useable via payment (like cars).
     -   Increases Fence reputation.
-    -   Fence sends a random gift.
 -   Updates no-backpack extracts to be useable with backpacks.
 -   Updates cliff extracts to be useable without a paracord, red rebel, and with an armored rig.
 -   Sets a maximum hold time for extracts.

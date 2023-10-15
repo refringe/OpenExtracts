@@ -36,7 +36,6 @@ export interface Cooperation {
     item: string;
     number: number;
     modifyFenceReputation: boolean;
-    sendFenceGifts: boolean;
 }
 
 export interface ExtractHistory {

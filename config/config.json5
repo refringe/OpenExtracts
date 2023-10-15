@@ -73,9 +73,6 @@
 
             // Increase your Fence reputation when the CO-OP extract is used.
             modifyFenceReputation: true,
-
-            // Send Fence gift items when the CO-OP extract is used.
-            sendFenceGifts: true,
         },
     },
 }

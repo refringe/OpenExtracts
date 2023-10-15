@@ -1,11 +1,8 @@
 import { ProfileHelper } from "@spt-aki/helpers/ProfileHelper";
 import { TraderHelper } from "@spt-aki/helpers/TraderHelper";
 import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
-import { Item } from "@spt-aki/models/eft/common/tables/IItem";
 import { IEndOfflineRaidRequestData } from "@spt-aki/models/eft/match/IEndOfflineRaidRequestData";
-import { MessageType } from "@spt-aki/models/enums/MessageType";
 import { Traders } from "@spt-aki/models/enums/Traders";
-import { ILocaleBase } from "@spt-aki/models/spt/server/ILocaleBase";
 import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
 import { LocaleService } from "@spt-aki/services/LocaleService";
 import { MailSendService } from "@spt-aki/services/MailSendService";
@@ -18,7 +15,7 @@ import path from "path";
 import { inject, injectable } from "tsyringe";
 import { OpenExtracts } from "../OpenExtracts";
 import { ExtractHistorySchema } from "../schemas/ExtractHistorySchema";
-import { ExtractHistory, FenceMessages } from "../types";
+import { ExtractHistory } from "../types";
 
 /**
  * This class is initialized when the player chooses to extract from a coop extract. It's used to modify the fence rep
@@ -34,14 +31,10 @@ export class CooperationExtract {
     private extractHistorySchema: JSONSchema7;
 
     private static readonly EXTRACT_HISTORY_LOCATION = "../data/extractHistory.json";
-    private static readonly FENCE_MESSAGE_LOCATION = "../data/fenceMessages.json";
 
     private static readonly COOP_FENCE_REP_GAIN = 0.25;
     private static readonly COOP_FENCE_REP_MULTIPLIER = 0.5;
     private static readonly COOP_FENCE_REP_GROWTH = 0.01;
-
-    private static readonly COOP_FENCE_GIFT_NUM_MIN = 2;
-    private static readonly COOP_FENCE_GIFT_NUM_MAX = 4;
 
     constructor(
         sessionId: string,
@@ -74,48 +67,6 @@ export class CooperationExtract {
 
         // Engage!
         this.handleExtract(sessionId, info);
-    }
-
-    /**
-     * Loads the fence messages from the JSON file. We're doing this asynchronously to prevent the server from hanging
-     * on startup (since the messages aren't actually used until an extract occurs).
-     */
-    public static async loadFenceMessages(locales: ILocaleBase): Promise<void> {
-        try {
-            // Read the JSON file
-            const fileContent = await fs.promises.readFile(
-                path.join(__dirname, CooperationExtract.FENCE_MESSAGE_LOCATION),
-                "utf-8"
-            );
-            const messages: FenceMessages = JSON.parse(fileContent);
-
-            // Call the method to add the messages to the database
-            CooperationExtract.addFenceMessages(locales, messages);
-
-            if (OpenExtracts.config.general.debug) {
-                OpenExtracts.logger.log(`OpenExtracts: Fence messages have successfully loaded.`, "gray");
-            }
-        } catch (error) {
-            OpenExtracts.logger.log(`OpenExtracts: Error loading fence messages: ${error}`, "red");
-        }
-    }
-
-    /**
-     * Add the fence messages to the locale database.
-     */
-    private static addFenceMessages(locales: ILocaleBase, messages: FenceMessages): void {
-        // Loop through each language in the JSON file
-        for (const lang of Object.keys(messages)) {
-            // If the language key doesn't exist in the database, skip it.
-            if (!locales.global[lang]) {
-                continue;
-            }
-
-            // Loop through each message key for the current language. Overwrite the existing message if it exists.
-            for (const key of Object.keys(messages[lang])) {
-                locales.global[lang][key] = messages[lang][key];
-            }
-        }
     }
 
     /**
@@ -179,10 +130,6 @@ export class CooperationExtract {
             const newRep = this.calculateNewFenceRep(sessionId, info.exitName);
             this.updateFenceReputation(newRep);
             this.rememberCoopExtract(sessionId, info.exitName);
-        }
-
-        if (OpenExtracts.config.extracts.cooperation.sendFenceGifts) {
-            this.sendFenceGift(sessionId);
         }
     }
 
@@ -303,109 +250,6 @@ export class CooperationExtract {
         } catch (err) {
             OpenExtracts.logger.log(`OpenExtracts: Failed to save extract history: ${err}`, "red");
         }
-    }
-
-    /**
-     * Send a gift to the player from Fence.
-     */
-    private sendFenceGift(sessionId: string): void {
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log("OpenExtracts: Sending Fence gift.", "gray");
-        }
-
-        const items: Item[] = this.generateGiftItems();
-        const message = this.selectFenceMessage();
-        const fence = this.traderHelper.getTraderById(Traders.FENCE);
-
-        // Send the message and the gift.
-        this.mailSendService.sendDirectNpcMessageToPlayer(
-            sessionId,
-            fence,
-            MessageType.MESSAGE_WITH_ITEMS,
-            message,
-            items,
-            this.timeUtil.getHoursAsSeconds(48)
-        );
-    }
-
-    /**
-     * Generate a random gift for the player from Fence's assortment.
-     */
-    private generateGiftItems(): Item[] {
-        // Load up the items that Fence has available.
-        const fenceItems: Item[] = this.traderHelper.getTraderAssortsByTraderId(Traders.FENCE).items;
-
-        // Determine the maximum number of gifts we can generate.
-        const maxGifts = Math.min(fenceItems.length, CooperationExtract.COOP_FENCE_GIFT_NUM_MAX);
-
-        // Randomly choose the number of gifts.
-        const numGifts = Math.floor(Math.random() * (maxGifts - 1)) + CooperationExtract.COOP_FENCE_GIFT_NUM_MIN;
-
-        // Randomly select 'numGifts' unique items from the list.
-        const selectedGifts: Item[] = [];
-        for (let i = 0; i < numGifts; i++) {
-            const randomIndex = Math.floor(Math.random() * fenceItems.length);
-            const selectedItem = fenceItems.splice(randomIndex, 1)[0];
-            selectedGifts.push(selectedItem);
-        }
-
-        return this.buffGifts(selectedGifts);
-    }
-
-    /**
-     * Buff the gifts by increasing durability, use counts, etc... back to full. We want them to be gifts, not trash.
-     */
-    private buffGifts(items: Item[]): Item[] {
-        const database = this.databaseServer.getTables();
-
-        for (const item of items) {
-            // Set item durability to full.
-            if (item?.upd?.Repairable) {
-                const mintDurability = database?.templates?.items[item._tpl]?._props?.Durability;
-                if (mintDurability !== undefined) {
-                    item.upd.Repairable.Durability = item.upd.Repairable.MaxDurability = mintDurability;
-                }
-            }
-
-            // Updated medical items to full uses.
-            if (item?.upd?.MedKit) {
-                const mintHpResource = database?.templates?.items[item._tpl]?._props?.MaxHpResource;
-                if (mintHpResource !== undefined) {
-                    item.upd.MedKit.HpResource = mintHpResource;
-                }
-            }
-
-            // Clean face shields.
-            if (item?.upd?.FaceShield) {
-                item.upd.FaceShield.Hits = 0;
-            }
-
-            // Set food and drink items to full resource.
-            if (item?.upd?.FoodDrink) {
-                const mintResource = database?.templates?.items[item._tpl]?._props?.MaxResource;
-                if (mintResource !== undefined) {
-                    item.upd.FoodDrink.HpPercent = mintResource;
-                }
-            }
-
-            // Set keys to full uses.
-            if (item?.upd?.Key) {
-                const mintNumberOfUsages = database?.templates?.items[item._tpl]?._props?.MaximumNumberOfUsage;
-                if (mintNumberOfUsages !== undefined) {
-                    item.upd.Key.NumberOfUsages = mintNumberOfUsages;
-                }
-            }
-        }
-        return items;
-    }
-
-    /**
-     * Pick a random message from Fence's imported messages.
-     */
-    private selectFenceMessage(): string {
-        const key = `open_extracts_${Math.floor(Math.random() * 20) + 1}`;
-        const locale = this.localeService.getLocaleDb();
-        return locale[key];
     }
 
     /**
