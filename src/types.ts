@@ -35,7 +35,6 @@ export interface Cooperation {
     convertToPayment: boolean;
     item: string;
     number: number;
-    modifyFenceReputation: boolean;
 }
 
 export interface ExtractHistory {

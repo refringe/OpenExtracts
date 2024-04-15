@@ -21,6 +21,7 @@ export class ExtractAdjuster {
         lighthouse: { config: "lighthouse", human: "Lighthouse" },
         rezervbase: { config: "reserve", human: "Reserve" },
         reservebase: { config: "reserve", human: "Reserve" }, // Duplicate entry to handle both potential inputs
+        sandbox: { config: "groundZero", human: "Ground Zero" },
         shoreline: { config: "shoreline", human: "Shoreline" },
         tarkovstreets: { config: "streets", human: "Streets of Tarkov" },
         woods: { config: "woods", human: "Woods" },
@@ -65,7 +66,7 @@ export class ExtractAdjuster {
         }
 
         OpenExtracts.logger.log(
-            `OpenExtracts: Extracts have successfully adjusted according to the configuration.`,
+            "OpenExtracts: Extracts have successfully adjusted according to the configuration.",
             "cyan"
         );
     }
@@ -82,6 +83,7 @@ export class ExtractAdjuster {
             "laboratory",
             "lighthouse",
             "rezervbase",
+            "sandbox",
             "shoreline",
             "tarkovstreets",
             "woods",
@@ -308,7 +310,9 @@ export class ExtractAdjuster {
         const entryPointsSet = new Set<string>();
         for (const extract in location.exits) {
             const entryPoints = location.exits[extract].EntryPoints.split(",");
-            entryPoints.forEach((entryPoint: string) => entryPointsSet.add(entryPoint));
+            for (const entryPoint of entryPoints) {
+                entryPointsSet.add(entryPoint);
+            }
         }
         return Array.from(entryPointsSet).join(",");
     }

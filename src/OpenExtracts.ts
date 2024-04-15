@@ -1,10 +1,8 @@
-import { MatchCallbacks } from "@spt-aki/callbacks/MatchCallbacks";
 import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
 import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { DependencyContainer } from "tsyringe";
 import { ExtractAdjuster } from "./adjusters/ExtractAdjuster";
-import { CustomMatchCallbacks } from "./callbacks/CustomMatchCallbacks";
 import { ConfigServer } from "./servers/ConfigServer";
 import { Configuration } from "./types";
 
@@ -46,28 +44,12 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
         if (OpenExtracts.config === null) {
             return;
         }
-
-        // Register our custom MatchCallbacks class and overwrite the token on the original class so ours is used in
-        // it's place. We're using this to get information about an extract after one's used, and this is only needed
-        // if we're modifying the fence reputation after a cooperation extract.
-        if (this.coopFenceOpsEnabled()) {
-            container.register<CustomMatchCallbacks>("CustomMatchCallbacks", CustomMatchCallbacks);
-            container.register<MatchCallbacks>("MatchCallbacks", { useToken: "CustomMatchCallbacks" });
-        }
-    }
-
-    /**
-     * Check to see if the cooperation extract and fence operations are enabled within the configuration file.
-     */
-    private coopFenceOpsEnabled(): boolean {
-        const coop = OpenExtracts.config.extracts.cooperation;
-        return coop.convertToPayment && coop.modifyFenceReputation;
     }
 
     /**
      * Trigger the changes to extracts once the database has loaded.
      */
-    public postDBLoad(container: DependencyContainer): void {
+    public postDBLoad(): void {
         // If the configuration is null at this point we can stop here. This will happen if the configuration file
         // failed to load, failed to validate, or if the mod is disabled in the configuration file.
         if (OpenExtracts.config === null) {
