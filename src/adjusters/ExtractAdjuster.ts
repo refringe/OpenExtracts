@@ -300,7 +300,7 @@ export class ExtractAdjuster {
      * Determines whether the specified extract is a cliff extract.
      */
     private static isCliffExtract(extract: Exit): boolean {
-        return extract.Name.trim().toLowerCase().includes("alpinist") && extract.PassageRequirement === "Reference";
+        return extract.Name.trim().toLowerCase().includes("alp") && extract.PassageRequirement === "Reference";
     }
 
     /**
