@@ -67,11 +67,9 @@ export class ConfigSchema {
                                     shoreline: {
                                         type: "object",
                                         properties: {
-                                            "Rock Passage": { type: "number", minimum: 0, maximum: 100 },
                                             "Pier Boat": { type: "number", minimum: 0, maximum: 100 },
-                                            "CCP Temporary": { type: "number", minimum: 0, maximum: 100 },
                                         },
-                                        required: ["Rock Passage", "Pier Boat", "CCP Temporary"],
+                                        required: ["Pier Boat"],
                                         additionalProperties: false,
                                     },
                                     streets: {
