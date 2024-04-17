@@ -4,13 +4,13 @@ export interface Configuration {
     extracts: Extracts;
 }
 
-// The configuration file structure for the "general" section.
+// The configuration structure for the "general" section.
 export interface General {
     enabled: boolean;
     debug: boolean;
 }
 
-// The configuration file structure for the "extracts" section.
+// The configuration structure for the "extracts" section.
 export interface Extracts {
     ignoreEntryPoint: boolean;
     ignoreCliffRequirements: boolean;
@@ -18,9 +18,10 @@ export interface Extracts {
     maxExtractionTime: number;
     random: Random;
     cooperation: Cooperation;
+    vehicle: Vehicle;
 }
 
-// The configuration file structure for the "random" section.
+// The configuration structure for the "random" section.
 export interface Random {
     enabled: boolean;
     chances: {
@@ -30,24 +31,16 @@ export interface Random {
     };
 }
 
-// The configuration file structure for the "cooperation" section.
+// The configuration structure for the "cooperation" section.
 export interface Cooperation {
     convertToPayment: boolean;
     item: string;
     number: number;
 }
 
-export interface ExtractHistory {
-    [sessionId: string]: ExtractRecord[];
-}
-
-export interface ExtractRecord {
-    extractName: string;
-    timestamp: string; // ISO 8601 format (UTC timezone)
-}
-
-export interface FenceMessages {
-    [language: string]: {
-        [messageKey: string]: string;
-    };
+// The configuration structure for the "vehicle" section.
+export interface Vehicle {
+    adjustPayment: boolean;
+    item: string;
+    number: number;
 }

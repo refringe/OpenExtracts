@@ -117,6 +117,16 @@ export class ConfigSchema {
                         required: ["convertToPayment", "item", "number"],
                         additionalProperties: false,
                     },
+                    vehicle: {
+                        type: "object",
+                        properties: {
+                            adjustPayment: { type: "boolean" },
+                            item: { type: "string" },
+                            number: { type: "number", minimum: 0, maximum: 65535 },
+                        },
+                        required: ["adjustPayment", "item", "number"],
+                        additionalProperties: false,
+                    },
                 },
                 required: [
                     "ignoreEntryPoint",

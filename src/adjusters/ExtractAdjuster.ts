@@ -60,6 +60,7 @@ export class ExtractAdjuster {
                 }
 
                 this.convertCooperationToPayment(extract, location);
+                this.adjustVehiclePayment(extract, location);
                 this.removeBackpackRequirement(extract, location);
                 this.removeCliffRequirements(extract, location);
             }
@@ -278,7 +279,7 @@ export class ExtractAdjuster {
         }
 
         if (!ExtractAdjuster.isCliffExtract(extract)) {
-            // This isn't a cliff extract;
+            // This isn't a cliff extract.
             return;
         }
 
@@ -324,5 +325,52 @@ export class ExtractAdjuster {
     private getLocationName(gameLocationName: string, nameType: "config" | "human"): string {
         const location = gameLocationName.toLowerCase();
         return ExtractAdjuster.locationNameMappings[location]?.[nameType] || location;
+    }
+
+    /**
+     * Adjusts the vehicle payment item information.
+     */
+    private adjustVehiclePayment(extract: Exit, location: ILocationBase): void {
+        if (!OpenExtracts.config.extracts.vehicle.adjustPayment) {
+            // Option has been disabled in the configuration file.
+            return;
+        }
+
+        if (!this.isVehicleExtract(extract)) {
+            // This isn't a vehicle extract.
+            return;
+        }
+
+        extract.Id = OpenExtracts.config.extracts.vehicle.item;
+        extract.Count = OpenExtracts.config.extracts.vehicle.number;
+
+        if (OpenExtracts.config.general.debug) {
+            OpenExtracts.logger.log(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
+                    location.Id,
+                    "human"
+                )} has had payment options adjusted.`,
+                "gray"
+            );
+        }
+    }
+
+    /**
+     * Determines whether the specified extract is a vehicle extract.
+     */
+    private isVehicleExtract(extract: Exit): boolean {
+        const vehicleExtracts = [
+            "dorms v-ex",
+            "pp exfil",
+            "v-ex_light",
+            "south v-ex",
+            "e7_car",
+            "sandbox_vexit",
+            "shorl_v-ex"
+        ];
+        return (
+            extract.Name.trim().toLowerCase().includes("v-ex") ||
+            vehicleExtracts.includes(extract.Name.trim().toLowerCase())
+        );
     }
 }
