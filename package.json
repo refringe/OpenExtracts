@@ -1,6 +1,6 @@
 {
     "name": "open-extracts",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "main": "src/OpenExtracts.js",
     "license": "MIT",
     "author": "Refringe",

@@ -366,7 +366,7 @@ export class ExtractAdjuster {
             "south v-ex",
             "e7_car",
             "sandbox_vexit",
-            "shorl_v-ex"
+            "shorl_v-ex",
         ];
         return (
             extract.Name.trim().toLowerCase().includes("v-ex") ||
