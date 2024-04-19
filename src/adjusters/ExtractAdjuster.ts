@@ -49,7 +49,6 @@ export class ExtractAdjuster {
         for (const locationName of enabledLocations) {
             const location = locations[locationName].base as ILocationBase;
             for (const extract of location.exits) {
-                this.commonAdjustments(extract);
                 this.enableAllEntryPoints(extract, location);
                 this.adjustChanceEnabled(extract, location);
                 this.adjustMaximumExtractTime(extract, location);
@@ -61,6 +60,7 @@ export class ExtractAdjuster {
 
                 this.convertCooperationToPayment(extract, location);
                 this.adjustVehiclePayment(extract, location);
+                this.resetTimerOnLeave(extract, location);
                 this.removeBackpackRequirement(extract, location);
                 this.removeCliffRequirements(extract, location);
             }
@@ -89,15 +89,6 @@ export class ExtractAdjuster {
             "tarkovstreets",
             "woods",
         ]);
-    }
-
-    /**
-     * Performs common adjustments that are applicable to all extracts.
-     */
-    private commonAdjustments(extract: Exit): void {
-        // This is SPT; all extracts should be individual and have no minimum player requirement.
-        extract.ExfiltrationType = "Individual";
-        extract.PlayersCount = 0;
     }
 
     /**
@@ -195,7 +186,7 @@ export class ExtractAdjuster {
             return;
         }
 
-        if (!ExtractAdjuster.isCooperationExtract(extract)) {
+        if (!this.isCooperationExtract(extract)) {
             // This isn't a cooperation extract;
             return;
         }
@@ -219,7 +210,7 @@ export class ExtractAdjuster {
     /**
      * Determines whether the specified extract is a cooperation extract.
      */
-    private static isCooperationExtract(extract: Exit): boolean {
+    private isCooperationExtract(extract: Exit): boolean {
         return extract.PassageRequirement === "ScavCooperation";
     }
 
@@ -278,7 +269,7 @@ export class ExtractAdjuster {
             return;
         }
 
-        if (!ExtractAdjuster.isCliffExtract(extract)) {
+        if (!this.isCliffExtract(extract)) {
             // This isn't a cliff extract.
             return;
         }
@@ -300,7 +291,7 @@ export class ExtractAdjuster {
     /**
      * Determines whether the specified extract is a cliff extract.
      */
-    private static isCliffExtract(extract: Exit): boolean {
+    private isCliffExtract(extract: Exit): boolean {
         return extract.Name.trim().toLowerCase().includes("alp") && extract.PassageRequirement === "Reference";
     }
 
@@ -372,5 +363,33 @@ export class ExtractAdjuster {
             extract.Name.trim().toLowerCase().includes("v-ex") ||
             vehicleExtracts.includes(extract.Name.trim().toLowerCase())
         );
+    }
+
+    /**
+     * This will cause the timer for an extract to reset when a player leaves the extract zone.
+     */
+    private resetTimerOnLeave(extract: Exit, location: ILocationBase): void {
+        if (!OpenExtracts.config.extracts.resetTimerOnLeave) {
+            // Option has been disabled in the configuration file.
+            return;
+        }
+
+        if (!this.isVehicleExtract(extract) && !this.isCooperationExtract(extract)) {
+            // This isn't a compatible extract.
+            return;
+        }
+
+        extract.ExfiltrationType = "Individual";
+        extract.PlayersCount = 0;
+
+        if (OpenExtracts.config.general.debug) {
+            OpenExtracts.logger.log(
+                `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
+                    location.Id,
+                    "human"
+                )} will have the extract timer reset on leave.`,
+                "gray"
+            );
+        }
     }
 }

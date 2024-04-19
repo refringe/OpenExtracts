@@ -16,6 +16,7 @@ export interface Extracts {
     ignoreCliffRequirements: boolean;
     ignoreBackpackRequirements: boolean;
     maxExtractionTime: number;
+    resetTimerOnLeave: boolean;
     random: Random;
     cooperation: Cooperation;
     vehicle: Vehicle;

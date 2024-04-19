@@ -22,6 +22,9 @@
         // Maximum number of seconds to wait to extract in extraction area
         maxExtractionTime: 60,
 
+        // Reset payment extract timers when the player leaves the extract area.
+        resetTimerOnLeave: false,
+
         // Update percentages for random extract availability.
         // Only change the numbers... Do not change the keys/names!
         random: {

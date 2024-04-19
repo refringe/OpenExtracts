@@ -21,6 +21,7 @@ export class ConfigSchema {
                     ignoreCliffRequirements: { type: "boolean" },
                     ignoreBackpackRequirements: { type: "boolean" },
                     maxExtractionTime: { type: "number" },
+                    resetTimerOnLeave: { type: "boolean" },
                     random: {
                         type: "object",
                         properties: {
@@ -133,6 +134,7 @@ export class ConfigSchema {
                     "ignoreCliffRequirements",
                     "ignoreBackpackRequirements",
                     "maxExtractionTime",
+                    "resetTimerOnLeave",
                     "random",
                     "cooperation",
                 ],
