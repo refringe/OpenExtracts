@@ -1,6 +1,6 @@
-import { Exit, ILocationBase } from "@spt-aki/models/eft/common/ILocationBase";
-import { ILocations } from "@spt-aki/models/spt/server/ILocations";
-import { DatabaseServer } from "@spt-aki/servers/DatabaseServer";
+import { Exit, ILocationBase } from "@spt/models/eft/common/ILocationBase";
+import { ILocations } from "@spt/models/spt/server/ILocations";
+import { DatabaseServer } from "@spt/servers/DatabaseServer";
 import { OpenExtracts } from "../OpenExtracts";
 
 /**
@@ -112,7 +112,7 @@ export class ExtractAdjuster {
                     `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                         location.Id,
                         "human"
-                    )} has been updated to allow all entry points: ${allEntryPoints}.`,
+                    )} has been updated to allow all entry points: ${allEntryPoints.split(",").join(", ")}.`,
                     "gray"
                 );
             }

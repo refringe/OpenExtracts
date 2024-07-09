@@ -1,10 +1,7 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": [
-        "@typescript-eslint",
-        "prettier"
-    ],
+    "plugins": ["@typescript-eslint", "prettier"],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
@@ -26,46 +23,31 @@
             },
             {
                 "selector": "default",
-                "format": [
-                    "camelCase"
-                ],
+                "format": ["camelCase"],
                 "leadingUnderscore": "allow"
             },
             {
                 "selector": "variable",
-                "format": [
-                    "camelCase",
-                    "UPPER_CASE"
-                ],
+                "format": ["camelCase", "UPPER_CASE"],
                 "leadingUnderscore": "allow"
             },
             {
                 "selector": "typeLike",
-                "format": [
-                    "PascalCase"
-                ]
+                "format": ["PascalCase"]
             },
             {
                 "selector": "objectLiteralProperty",
-                "format": [
-                    "PascalCase",
-                    "camelCase"
-                ],
+                "format": ["PascalCase", "camelCase"],
                 "leadingUnderscore": "allow"
             },
             {
                 "selector": "typeProperty",
-                "format": [
-                    "PascalCase",
-                    "camelCase"
-                ],
+                "format": ["PascalCase", "camelCase"],
                 "leadingUnderscore": "allow"
             },
             {
                 "selector": "enumMember",
-                "format": [
-                    "UPPER_CASE"
-                ]
+                "format": ["UPPER_CASE"]
             }
         ],
         "@typescript-eslint/no-unused-expressions": [
@@ -84,10 +66,7 @@
     },
     "overrides": [
         {
-            "files": [
-                "*.mjs",
-                "*.ts"
-            ],
+            "files": ["*.mjs", "*.ts"],
             "env": {
                 "node": true
             }

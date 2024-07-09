@@ -1,6 +1,6 @@
-import { IPostDBLoadMod } from "@spt-aki/models/external/IPostDBLoadMod";
-import { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+import { IPostDBLoadMod } from "@spt/models/external/IPostDBLoadMod";
+import { IPreSptLoadMod } from "@spt/models/external/IPreSptLoadMod";
+import { ILogger } from "@spt/models/spt/utils/ILogger";
 import { DependencyContainer } from "tsyringe";
 import { ExtractAdjuster } from "./adjusters/ExtractAdjuster";
 import { ConfigServer } from "./servers/ConfigServer";
@@ -9,7 +9,7 @@ import { Configuration } from "./types";
 /**
  * The main class of the OpenExtracts mod.
  */
-export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
+export class OpenExtracts implements IPostDBLoadMod, IPreSptLoadMod {
     public static container: DependencyContainer;
     public static logger: ILogger;
     public static config: Configuration | null = null;
@@ -18,7 +18,7 @@ export class OpenExtracts implements IPostDBLoadMod, IPreAkiLoadMod {
      * Handle loading the configuration file and registering our custom MatchCallbacks class.
      * Runs before the database is loaded.
      */
-    public preAkiLoad(container: DependencyContainer): void {
+    public preSptLoad(container: DependencyContainer): void {
         OpenExtracts.container = container;
 
         // Resolve the logger and save it to the static logger property for simple access.
