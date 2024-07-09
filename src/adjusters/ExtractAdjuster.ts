@@ -1,7 +1,9 @@
 import { Exit, ILocationBase } from "@spt/models/eft/common/ILocationBase";
 import { ILocations } from "@spt/models/spt/server/ILocations";
 import { DatabaseServer } from "@spt/servers/DatabaseServer";
-import { OpenExtracts } from "../OpenExtracts";
+import { DependencyContainer } from "tsyringe";
+import { ILogger } from "@spt/models/spt/utils/ILogger";
+import { Configuration } from "../types";
 
 /**
  * The `ExtractAdjuster` class is responsible for orchestrating adjustments to game extracts according to a predefined
@@ -9,6 +11,10 @@ import { OpenExtracts } from "../OpenExtracts";
  * configuration settings.
  */
 export class ExtractAdjuster {
+    private container: DependencyContainer;
+    private logger: ILogger;
+    private config: Configuration;
+
     // This is a mapping of location names as they are represented in the game to their configuration and human-readable
     // counterparts. This is used to convert the location name from the game to the name used in the configuration file.
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -29,20 +35,20 @@ export class ExtractAdjuster {
     /* eslint-enable @typescript-eslint/naming-convention */
 
     /**
-     * Make the adjustments to the extracts once the class is instantiated.
+     * Constructs a new instance of the `ExtractAdjuster` class.
      */
-    constructor() {
-        this.makeAdjustments();
+    constructor(container: DependencyContainer, config: Configuration) {
+        this.container = container;
+        this.logger = this.container.resolve<ILogger>("WinstonLogger");
+        this.config = config;
     }
 
     /**
      * Orchestrates the adjustment of extracts according to the configuration. It iterates over enabled locations and
      * performs various adjustments on the extracts based on the rules defined in the configuration.
      */
-    private makeAdjustments(): void {
-        const locations: ILocations = OpenExtracts.container
-            .resolve<DatabaseServer>("DatabaseServer")
-            .getTables().locations;
+    public makeAdjustments(): void {
+        const locations: ILocations = this.container.resolve<DatabaseServer>("DatabaseServer").getTables().locations;
         const enabledLocations = ExtractAdjuster.getEnabledLocations();
 
         // Iterate over all of the enabled location's exits.
@@ -66,10 +72,7 @@ export class ExtractAdjuster {
             }
         }
 
-        OpenExtracts.logger.log(
-            "OpenExtracts: Extracts have successfully adjusted according to the configuration.",
-            "cyan"
-        );
+        this.logger.log("OpenExtracts: Extracts have successfully adjusted according to the configuration.", "cyan");
     }
 
     /**
@@ -95,7 +98,7 @@ export class ExtractAdjuster {
      * Enables all entry points for a specified extract, making it usable regardless of the player's spawn location.
      */
     private enableAllEntryPoints(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.ignoreEntryPoint) {
+        if (!this.config.extracts.ignoreEntryPoint) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -107,8 +110,8 @@ export class ExtractAdjuster {
         if (extract.EntryPoints !== allEntryPoints) {
             extract.EntryPoints = allEntryPoints;
 
-            if (OpenExtracts.config.general.debug) {
-                OpenExtracts.logger.log(
+            if (this.config.general.debug) {
+                this.logger.log(
                     `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                         location.Id,
                         "human"
@@ -123,12 +126,12 @@ export class ExtractAdjuster {
      * Adjusts the probability of the extract being enabled based on the configuration settings.
      */
     private adjustChanceEnabled(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.random.enabled) {
+        if (!this.config.extracts.random.enabled) {
             // Option has been disabled in the configuration file.
             return;
         }
 
-        const locationConfig = OpenExtracts.config.extracts.random.chances[this.getLocationName(location.Id, "config")];
+        const locationConfig = this.config.extracts.random.chances[this.getLocationName(location.Id, "config")];
 
         // Return early if we can't find the configuration information for this extract.
         if (locationConfig === undefined || locationConfig[extract.Name.trim()] === undefined) {
@@ -140,8 +143,8 @@ export class ExtractAdjuster {
             const originalChance = extract.Chance;
             extract.Chance = configChance;
 
-            if (OpenExtracts.config.general.debug) {
-                OpenExtracts.logger.log(
+            if (this.config.general.debug) {
+                this.logger.log(
                     `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                         location.Id,
                         "human"
@@ -157,7 +160,7 @@ export class ExtractAdjuster {
      */
     private adjustMaximumExtractTime(extract: Exit, location: ILocationBase): void {
         const originalExtractTime = extract.ExfiltrationTime;
-        const maxTime = OpenExtracts.config.extracts.maxExtractionTime;
+        const maxTime = this.config.extracts.maxExtractionTime;
 
         if (originalExtractTime <= maxTime) {
             // The original extraction time is already less than or equal to the maximum extraction time.
@@ -166,8 +169,8 @@ export class ExtractAdjuster {
 
         extract.ExfiltrationTime = maxTime;
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
@@ -181,7 +184,7 @@ export class ExtractAdjuster {
      * Converts a cooperation extract to a payment extract according to the configuration settings.
      */
     private convertCooperationToPayment(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.cooperation.convertToPayment) {
+        if (!this.config.extracts.cooperation.convertToPayment) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -193,11 +196,11 @@ export class ExtractAdjuster {
 
         extract.PassageRequirement = "TransferItem";
         extract.RequirementTip = "EXFIL_Item";
-        extract.Id = OpenExtracts.config.extracts.cooperation.item;
-        extract.Count = OpenExtracts.config.extracts.cooperation.number;
+        extract.Id = this.config.extracts.cooperation.item;
+        extract.Count = this.config.extracts.cooperation.number;
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
@@ -218,7 +221,7 @@ export class ExtractAdjuster {
      * Removes the backpack requirement from an extract based on the configuration settings.
      */
     private removeBackpackRequirement(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.ignoreBackpackRequirements) {
+        if (!this.config.extracts.ignoreBackpackRequirements) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -232,8 +235,8 @@ export class ExtractAdjuster {
         extract.RequiredSlot = "FirstPrimaryWeapon";
         extract.RequirementTip = "";
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
@@ -264,7 +267,7 @@ export class ExtractAdjuster {
      * Removes the cliff requirement from an extract based on the configuration settings.
      */
     private removeCliffRequirements(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.ignoreCliffRequirements) {
+        if (!this.config.extracts.ignoreCliffRequirements) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -277,8 +280,8 @@ export class ExtractAdjuster {
         extract.Id = "";
         extract.PassageRequirement = "None";
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
@@ -322,7 +325,7 @@ export class ExtractAdjuster {
      * Adjusts the vehicle payment item information.
      */
     private adjustVehiclePayment(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.vehicle.adjustPayment) {
+        if (!this.config.extracts.vehicle.adjustPayment) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -332,11 +335,11 @@ export class ExtractAdjuster {
             return;
         }
 
-        extract.Id = OpenExtracts.config.extracts.vehicle.item;
-        extract.Count = OpenExtracts.config.extracts.vehicle.number;
+        extract.Id = this.config.extracts.vehicle.item;
+        extract.Count = this.config.extracts.vehicle.number;
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
@@ -369,7 +372,7 @@ export class ExtractAdjuster {
      * This will cause the timer for an extract to reset when a player leaves the extract zone.
      */
     private resetTimerOnLeave(extract: Exit, location: ILocationBase): void {
-        if (!OpenExtracts.config.extracts.resetTimerOnLeave) {
+        if (!this.config.extracts.resetTimerOnLeave) {
             // Option has been disabled in the configuration file.
             return;
         }
@@ -382,8 +385,8 @@ export class ExtractAdjuster {
         extract.ExfiltrationType = "Individual";
         extract.PlayersCount = 0;
 
-        if (OpenExtracts.config.general.debug) {
-            OpenExtracts.logger.log(
+        if (this.config.general.debug) {
+            this.logger.log(
                 `OpenExtracts: ${extract.Name.trim()} on ${this.getLocationName(
                     location.Id,
                     "human"
