@@ -28,7 +28,7 @@ export class ExtractAdjuster {
         rezervbase: { config: "reserve", human: "Reserve" },
         reservebase: { config: "reserve", human: "Reserve" }, // Duplicate entry to handle both potential inputs
         sandbox: { config: "groundZero", human: "Ground Zero" },
-        sandbox_high: { config: "groundZeroHigh", human: "Ground Zero High"},
+        sandbox_high: { config: "groundZeroHigh", human: "Ground Zero High" },
         shoreline: { config: "shoreline", human: "Shoreline" },
         tarkovstreets: { config: "streets", human: "Streets of Tarkov" },
         woods: { config: "woods", human: "Woods" },
