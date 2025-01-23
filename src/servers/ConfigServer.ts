@@ -1,8 +1,8 @@
-import Ajv, { ValidateFunction } from "ajv";
 import * as fs from "node:fs";
+import { join } from "node:path";
+import ajv, { Ajv, ValidateFunction } from "ajv";
 import { JSONSchema7 } from "json-schema";
 import * as json5 from "json5";
-import { join } from "node:path";
 import { ConfigSchema } from "../schemas/ConfigSchema";
 import { Configuration } from "../types";
 
@@ -32,7 +32,7 @@ export class ConfigServer {
         this.relativeConfigPath = relativeConfigPath;
         this.configPath = this.buildConfigPath();
 
-        this.ajv = new Ajv();
+        this.ajv = new ajv();
         this.configSchema = ConfigSchema.schema;
         this.validate = this.ajv.compile(this.configSchema);
     }
@@ -82,7 +82,7 @@ export class ConfigServer {
             this.config = null;
             this.isValid = false;
             throw new Error(
-                `CONFIG_VALIDATION_ERROR - Configuration validation failed - ${this.ajv.errorsText(this.validate.errors)}`
+                `CONFIG_VALIDATION_ERROR - Configuration validation failed - ${this.ajv.errorsText(this.validate.errors)}`,
             );
         }
 

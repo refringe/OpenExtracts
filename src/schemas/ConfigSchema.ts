@@ -1,5 +1,6 @@
 import { JSONSchema7 } from "json-schema";
 
+// biome-ignore lint/complexity/noStaticOnlyClass:
 export class ConfigSchema {
     /* eslint-disable @typescript-eslint/naming-convention */
     public static readonly schema: JSONSchema7 = {

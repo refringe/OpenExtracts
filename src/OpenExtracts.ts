@@ -23,9 +23,9 @@ class OpenExtracts implements IPostDBLoadMod, IPreSptLoadMod {
         // Load and validate the configuration file.
         try {
             this.config = new ConfigServer().loadConfig().validateConfig().getConfig();
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.config = null; // Set the config to null so we know it's failed to load or validate.
-            this.logger.log(`OpenExtracts: ${error.message}`, "red");
+            this.logger.log(`OpenExtracts: ${(error as Error).message}`, "red");
         }
 
         // Set a flag so we know that we shouldn't continue when the postDBLoad method fires... just setting the config
